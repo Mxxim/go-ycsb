@@ -1,0 +1,16 @@
+
+# update only
+
+recordcount=2048
+operationcount=2048
+workload=core
+
+readallfields=true
+writeallfields=false
+
+readproportion=0
+updateproportion=1
+scanproportion=0
+insertproportion=0
+
+requestdistribution=sequential

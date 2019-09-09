@@ -1,0 +1,20 @@
+
+# scan only
+
+recordcount=2048
+operationcount=2048
+workload=core
+
+readallfields=true
+
+# what is the minimum number of records to scan
+minscanlength=1
+# On a single scan, the maximum number of records to access
+maxscanlength=1000
+
+readproportion=0
+updateproportion=0
+scanproportion=1
+insertproportion=0
+
+requestdistribution=sequential
