@@ -250,6 +250,10 @@ func (db *cassandraDB) Delete(ctx context.Context, table string, key string) err
 	return db.execQuery(ctx, query, key)
 }
 
+func (db *cassandraDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 func init() {
 	ycsb.RegisterDBCreator("cassandra", cassandraCreator{})
 	ycsb.RegisterDBCreator("scylla", cassandraCreator{})

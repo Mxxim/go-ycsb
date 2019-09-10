@@ -1,9 +1,11 @@
 
 # scan only
 
-recordcount=2048
-operationcount=2048
+recordcount=1000
+operationcount=1000
 workload=core
+
+insertorder=ordered
 
 readallfields=true
 
@@ -18,3 +20,10 @@ scanproportion=1
 insertproportion=0
 
 requestdistribution=sequential
+
+# 是否建立索引
+hasIndex=false
+
+# mongodb索引列
+# 只有当 hasIndex 为true的时候，这个配置项才生效
+mongodb.indexs=field0,field1,field2

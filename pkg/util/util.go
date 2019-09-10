@@ -44,6 +44,12 @@ func RandBytes(r *rand.Rand, b []byte) {
 	}
 }
 
+func UniformBytes(b []byte) {
+	for i := range b {
+		b[i] = letters[i%len(letters)]
+	}
+}
+
 // BufPool is a bytes.Buffer pool
 type BufPool struct {
 	p *sync.Pool

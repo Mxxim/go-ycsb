@@ -64,6 +64,8 @@ const (
 	InsertProportionDefault          = float64(0.0)
 	ScanProportion                   = "scanproportion"
 	ScanProportionDefault            = float64(0.0)
+	ScanValueProportion              = "scanvalueproportion"
+	ScanValueProportionDefault       = float64(0.0)
 	ReadModifyWriteProportion        = "readmodifywriteproportion"
 	ReadModifyWriteProportionDefault = float64(0.0)
 	// "uniform", "zipfian", "latest"
@@ -106,4 +108,10 @@ const (
 
 	KeyPrefix        = "keyprefix"
 	KeyPrefixDefault = "user"
+
+	// index
+	HasIndex = "hasIndex"
+	HasIndexDefault = false
+	DropIndex = "dropIndex"
+	DropIndexDefault = false
 )

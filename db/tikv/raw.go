@@ -189,3 +189,7 @@ func (db *rawDB) BatchDelete(ctx context.Context, table string, keys []string) e
 	}
 	return db.db.BatchDelete(rowKeys)
 }
+
+func (db *rawDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}

@@ -67,6 +67,7 @@ func (db *LDBInstance) Read(ctx context.Context, table string, key string, field
 }
 
 func (db *LDBInstance) Scan(ctx context.Context, table string, startKey string, count int, fields []string) ([]map[string][]byte, error) {
+	fmt.Printf("=== leveldb scan, startKey = %s, count = %v, len(fields) = %v\n", startKey, count, len(fields))
 	res := make([]map[string][]byte, count)
 	rowStartKey := db.getRowKey(table, startKey)
 	it := db.leveldb.NewIterator(&ldbutil.Range{Start: rowStartKey}, nil)
@@ -127,7 +128,12 @@ func (db *LDBInstance) Insert(ctx context.Context, table string, key string, val
 
 	return db.leveldb.Put(rowKey, rowData, db.writeOpts) //todo
 }
+
 func (db *LDBInstance) Delete(ctx context.Context, table string, key string) error { return nil }
+
+func (db *LDBInstance) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
 
 func (db *LDBInstance) getRowKey(table string, key string) []byte {
 	return util.Slice(fmt.Sprintf("%s-%s", table, key))

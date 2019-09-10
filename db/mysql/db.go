@@ -353,6 +353,10 @@ func (db *mysqlDB) Analyze(ctx context.Context, table string) error {
 	return err
 }
 
+func (db *mysqlDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 func init() {
 	ycsb.RegisterDBCreator("mysql", mysqlCreator{})
 	ycsb.RegisterDBCreator("tidb", mysqlCreator{})

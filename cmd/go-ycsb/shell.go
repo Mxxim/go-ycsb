@@ -107,6 +107,13 @@ func runShellCommand(args []string) {
 			Run:   runShellTableCommand,
 			DisableFlagsInUseLine: true,
 		},
+		&cobra.Command{
+			Use:                   "scan value",
+			Short:                 "Scan all items whose field is equal to a specific value",
+			Args:                  cobra.MinimumNArgs(2),
+			Run:                   runShellScanValueCommand,
+			DisableFlagsInUseLine: true,
+		},
 	)
 
 	if err := cmd.Execute(); err != nil {
@@ -213,6 +220,40 @@ func runShellTableCommand(cmd *cobra.Command, args []string) {
 		tableName = args[0]
 	}
 	fmt.Printf("Using table %s\n", tableName)
+}
+
+func runShellScanValueCommand(cmd *cobra.Command, args []string) {
+	recordCount, err := strconv.Atoi(args[0])
+	if err != nil {
+		fmt.Printf("invalid record count %s for scan\n", args[1])
+		return
+	}
+
+	values := make(map[string][]byte, len(args[1:]))
+	for _, arg := range args[1:] {
+		sep := strings.SplitN(arg, "=", 2)
+		values[sep[0]] = []byte(sep[1])
+	}
+
+	rows, err := globalDB.ScanValue(shellContext, tableName, recordCount, values)
+	if err != nil {
+		fmt.Printf("Scan value failed, err: %v\n", err)
+		return
+	}
+
+	if len(rows) == 0 {
+		fmt.Println("0 records")
+		return
+	}
+
+	fmt.Println("--------------------------------")
+	for i, row := range rows {
+		fmt.Printf("Record %d\n", i+1)
+		for key, value := range row {
+			fmt.Printf("%s=%q\n", key, value)
+		}
+	}
+	fmt.Println("--------------------------------")
 }
 
 func shellLoop() {

@@ -99,6 +99,10 @@ func (r *redis) Delete(ctx context.Context, table string, key string) error {
 	return r.client.Del(table + "/" + key).Err()
 }
 
+func (r *redis) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 type redisCreator struct{}
 
 func (r redisCreator) Create(p *properties.Properties) (ycsb.DB, error) {

@@ -1,9 +1,11 @@
 
 # update only
 
-recordcount=2048
-operationcount=2048
+recordcount=1000
+operationcount=1000
 workload=core
+
+insertorder=ordered
 
 readallfields=true
 writeallfields=false

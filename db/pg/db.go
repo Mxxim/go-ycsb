@@ -349,6 +349,10 @@ func (db *pgDB) Delete(ctx context.Context, table string, key string) error {
 	return db.execQuery(ctx, query, key)
 }
 
+func (db *pgDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 func init() {
 	ycsb.RegisterDBCreator("pg", pgCreator{})
 	ycsb.RegisterDBCreator("postgresql", pgCreator{})

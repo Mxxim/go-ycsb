@@ -49,6 +49,7 @@ const (
 	update
 	insert
 	scan
+	scanValue
 	readModifyWrite
 )
 
@@ -78,6 +79,9 @@ type core struct {
 	insertionRetryInterval       int64
 
 	valuePool sync.Pool
+
+	hasIndex bool
+	fieldValueGenerator ycsb.Generator
 }
 
 func getFieldLengthGenerator(p *properties.Properties) ycsb.Generator {
@@ -108,6 +112,7 @@ func createOperationGenerator(p *properties.Properties) *generator.Discrete {
 	insertProportion := p.GetFloat64(prop.InsertProportion, prop.InsertProportionDefault)
 	scanProportion := p.GetFloat64(prop.ScanProportion, prop.ScanProportionDefault)
 	readModifyWriteProportion := p.GetFloat64(prop.ReadModifyWriteProportion, prop.ReadModifyWriteProportionDefault)
+	scanvalueProportion := p.GetFloat64(prop.ScanValueProportion, prop.ScanValueProportionDefault)
 
 	operationChooser := generator.NewDiscrete()
 	if readProportion > 0 {
@@ -128,6 +133,10 @@ func createOperationGenerator(p *properties.Properties) *generator.Discrete {
 
 	if readModifyWriteProportion > 0 {
 		operationChooser.Add(readModifyWriteProportion, int64(readModifyWrite))
+	}
+
+	if scanvalueProportion > 0 {
+		operationChooser.Add(scanvalueProportion, int64(scanValue))
 	}
 
 	return operationChooser
@@ -198,6 +207,47 @@ func (c *core) buildValues(state *coreState, key string) map[string][]byte {
 	return values
 }
 
+// 给某几个field赋值 uniform value
+func (c *core) buildMultiUniformValues(state *coreState) map[string][]byte {
+	r := state.r
+	count := c.fieldChooser.Next(r)
+	if count == 0 {
+		count = 1
+	}
+	values := make(map[string][]byte, count)
+
+	for i :=0; i<int(count); i++ {
+		fieldKey := state.fieldNames[i]
+		buf := c.buildUniformValue(state)
+
+		values[fieldKey] = buf
+	}
+
+	return values
+}
+
+// 给所有的field都赋值 uniform value
+func (c *core) buildUniformValues(state *coreState) map[string][]byte {
+	values := make(map[string][]byte, c.fieldCount)
+
+	for _, fieldKey := range state.fieldNames {
+		buf := c.buildUniformValue(state)
+		values[fieldKey] = buf
+	}
+	return values
+}
+
+// 第一个byte为0-255的随机数，后面的byte为固定值
+func (c *core) buildUniformValue(state *coreState) []byte {
+	r := state.r
+	buf := c.getValueBuffer(int(c.fieldLengthGenerator.Next(r)))
+	if len(buf) > 0 {
+		buf[0] = byte(c.fieldValueGenerator.Next(r))
+		util.UniformBytes(buf[1:])
+	}
+	return buf
+}
+
 func (c *core) getValueBuffer(size int) []byte {
 	buf := c.valuePool.Get().([]byte)
 	if cap(buf) >= size {
@@ -259,8 +309,14 @@ func (c *core) DoInsert(ctx context.Context, db ycsb.DB) error {
 	r := state.r
 	keyNum := c.keySequence.Next(r)
 	dbKey := c.buildKeyName(keyNum)
-	values := c.buildValues(state, dbKey)
-	defer c.putValues(values)
+
+	values := make(map[string][]byte)
+	if c.hasIndex {
+		values = c.buildUniformValues(state)
+	} else {
+		values = c.buildValues(state, dbKey)
+		defer c.putValues(values)
+	}
 
 	numOfRetries := int64(0)
 
@@ -365,6 +421,8 @@ func (c *core) DoTransaction(ctx context.Context, db ycsb.DB) error {
 		return c.doTransactionInsert(ctx, db, state)
 	case scan:
 		return c.doTransactionScan(ctx, db, state)
+	case scanValue:
+		return c.doTransactionScanValue(ctx, db, state)
 	default:
 		return c.doTransactionReadModifyWrite(ctx, db, state)
 	}
@@ -483,8 +541,15 @@ func (c *core) doTransactionInsert(ctx context.Context, db ycsb.DB, state *coreS
 	keyNum := c.transactionInsertKeySequence.Next(r)
 	defer c.transactionInsertKeySequence.Acknowledge(keyNum)
 	dbKey := c.buildKeyName(keyNum)
-	values := c.buildValues(state, dbKey)
-	defer c.putValues(values)
+
+	values := make(map[string][]byte)
+	if c.hasIndex {
+		values = c.buildUniformValues(state)
+	} else {
+		values = c.buildValues(state, dbKey)
+		defer c.putValues(values)
+	}
+
 
 	return db.Insert(ctx, c.table, dbKey, values)
 }
@@ -505,6 +570,19 @@ func (c *core) doTransactionScan(ctx context.Context, db ycsb.DB, state *coreSta
 	}
 
 	_, err := db.Scan(ctx, c.table, startKeyName, int(scanLen), fields)
+
+	return err
+}
+
+func (c *core) doTransactionScanValue(ctx context.Context, db ycsb.DB, state *coreState) error {
+	r := state.r
+
+	scanLen := c.scanLength.Next(r)
+
+	values := c.buildMultiUniformValues(state)
+	defer c.putValues(values)
+
+	_, err := db.ScanValue(ctx, c.table, int(scanLen), values)
 
 	return err
 }
@@ -645,6 +723,7 @@ func (coreCreator) Create(p *properties.Properties) (ycsb.Workload, error) {
 
 	c.keySequence = generator.NewCounter(insertStart)
 	c.operationChooser = createOperationGenerator(p)
+	c.fieldValueGenerator = generator.NewSequential(0, 255)
 
 	c.transactionInsertKeySequence = generator.NewAcknowledgedCounter(c.recordCount)
 	switch requestDistrib {
@@ -690,6 +769,8 @@ func (coreCreator) Create(p *properties.Properties) (ycsb.Workload, error) {
 			return make([]byte, fieldLength)
 		},
 	}
+
+	c.hasIndex = p.GetBool(prop.HasIndex, prop.HasIndexDefault)
 
 	return c, nil
 }

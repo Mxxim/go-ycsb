@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/magiconair/properties"
+	"github.com/pingcap/go-ycsb/pkg/prop"
 	"github.com/pingcap/go-ycsb/pkg/ycsb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
+	"strings"
 )
 
 const (
@@ -20,6 +22,7 @@ const (
 	mongodbAuthdb    = "mongodb.authdb"
 	mongodbUsername  = "mongodb.username"
 	mongodbPassword  = "mongodb.password"
+	mongodbIndexs	 = "mongodb.indexs"
 
 	mongodbUriDefault       = "mongodb://127.0.0.1:27017"
 	mongodbNamespaceDefault = "ycsb.ycsb"
@@ -31,6 +34,10 @@ type mongoDB struct {
 	dbname   string
 	collname string
 	coll     *mongo.Collection
+
+	hasIndex bool
+	indexs []string
+	shouldDropIndex bool
 }
 
 func (m *mongoDB) Close() error {
@@ -42,6 +49,15 @@ func (m *mongoDB) InitThread(ctx context.Context, threadID int, threadCount int)
 }
 
 func (m *mongoDB) CleanupThread(ctx context.Context) {
+	if m.shouldDropIndex {
+		// 删除所有索引
+		indexView := m.coll.Indexes()
+		_, err := indexView.DropAll(context.Background(), options.DropIndexes())
+		if err != nil {
+			fmt.Printf("Drop error: %s\n", err.Error())
+			return
+		}
+	}
 }
 
 // Read a document.
@@ -84,8 +100,11 @@ func (m *mongoDB) Scan(ctx context.Context, table string, startKey string, count
 
 // Insert a document.
 func (m *mongoDB) Insert(ctx context.Context, table string, key string, values map[string][]byte) error {
+	fmt.Printf("======= mongodb insert, key = %v, len(values) = %v\n", key, len(values))
 	doc := bson.M{"_id": key}
 	for k, v := range values {
+		fmt.Println("------->>>>>>>")
+		fmt.Println(k, v)
 		doc[k] = v
 	}
 	if _, err := m.coll.InsertOne(ctx, doc); err != nil {
@@ -117,6 +136,35 @@ func (m *mongoDB) Delete(ctx context.Context, table string, key string) error {
 		return fmt.Errorf("Delete error: %s not found", key)
 	}
 	return nil
+}
+
+func (m *mongoDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	fmt.Printf("=== mongodb scanvalue, count = %v, len(values) = %v\n", count, len(values))
+	projection := map[string]bool{"_id": false}
+	limit := int64(count)
+	opt := &options.FindOptions{Projection: projection, Sort: bson.M{"_id": 1}, Limit: &limit}
+
+	bsonm := make(bson.M)
+	for k, v := range values {
+		fmt.Println(k, v)
+		bsonm[k] = v
+	}
+
+	cursor, err := m.coll.Find(ctx, bsonm, opt)
+	if err != nil {
+		return nil, fmt.Errorf("Scan error: %s", err.Error())
+	}
+	defer cursor.Close(ctx)
+	var docs []map[string][]byte
+	for cursor.Next(ctx) {
+		var doc map[string][]byte
+		if err := cursor.Decode(&doc); err != nil {
+			return docs, fmt.Errorf("Scan error: %s", err.Error())
+		}
+		fmt.Println(doc)
+		docs = append(docs, doc)
+	}
+	return docs, nil
 }
 
 type mongodbCreator struct {
@@ -164,15 +212,51 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 	fmt.Println("Connected to MongoDB!")
 
+	coll := cli.Database(ns.DB).Collection(ns.Collection)
 	m := &mongoDB{
 		cli:      cli,
 		dbname:   ns.DB,
 		collname: ns.Collection,
-		coll:     cli.Database(ns.DB).Collection(ns.Collection),
+		coll:     coll,
+		shouldDropIndex: p.GetBool(prop.DropIndex, prop.DropIndexDefault),
+	}
+
+	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)
+	if hasIndex {
+		m.indexs = getAllField(p.GetString(mongodbIndexs, ""))
+		if len(m.indexs) > 0 {
+			fmt.Println("create index ....")
+			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, m.indexs)
+			indexView := coll.Indexes()
+
+			var bsonxD bsonx.Doc
+			for _, fieldKey := range m.indexs {
+				bsonxD = append(bsonxD, bsonx.Elem{fieldKey, bsonx.Int32(1)})
+			}
+
+			_, err = indexView.CreateOne(context.Background(), mongo.IndexModel{
+				Keys: bsonxD,
+				Options: options.Index().SetName("fieldIndex"),
+			})
+			if err != nil {
+				return nil, err
+			}
+			m.hasIndex = hasIndex
+		}
 	}
 	return m, nil
 }
 
 func init() {
 	ycsb.RegisterDBCreator("mongodb", mongodbCreator{})
+}
+
+func getAllField(str string) []string {
+	fields := make([]string, 0)
+	if str == "" {
+		return fields
+	}
+	val := strings.TrimSpace(str)
+	fields = strings.Split(val, ",")
+	return fields
 }

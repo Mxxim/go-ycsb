@@ -263,6 +263,10 @@ func (db *rocksDB) Delete(ctx context.Context, table string, key string) error {
 	return db.db.Delete(db.writeOpts, rowKey)
 }
 
+func (db *rocksDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 func init() {
 	ycsb.RegisterDBCreator("rocksdb", rocksDBCreator{})
 }

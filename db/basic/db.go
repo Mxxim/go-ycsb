@@ -254,6 +254,10 @@ func (db *basicDB) BatchDelete(ctx context.Context, table string, keys []string)
 	panic("The basicDB has not implemented the batch operation")
 }
 
+func (db *basicDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 type basicDBCreator struct{}
 
 func (basicDBCreator) Create(p *properties.Properties) (ycsb.DB, error) {

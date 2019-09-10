@@ -254,6 +254,10 @@ func (db *badgerDB) Delete(ctx context.Context, table string, key string) error 
 	return err
 }
 
+func (db *badgerDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
+}
+
 func init() {
 	ycsb.RegisterDBCreator("badger", badgerCreator{})
 }

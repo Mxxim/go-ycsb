@@ -3,7 +3,6 @@ package aerospike
 import (
 	"context"
 	"errors"
-
 	as "github.com/aerospike/aerospike-client-go"
 	"github.com/magiconair/properties"
 	"github.com/pingcap/go-ycsb/pkg/ycsb"
@@ -160,6 +159,10 @@ func (adb *aerospikedb) Delete(ctx context.Context, table string, key string) er
 	}
 	_, err = adb.client.Delete(nil, asKey)
 	return err
+}
+
+func (adb *aerospikedb) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
+	return nil, nil
 }
 
 type aerospikeCreator struct{}

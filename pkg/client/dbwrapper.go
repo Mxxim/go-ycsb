@@ -85,6 +85,15 @@ func (db DbWrapper) Scan(ctx context.Context, table string, startKey string, cou
 	return db.DB.Scan(ctx, table, startKey, count, fields)
 }
 
+func (db DbWrapper) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) (_ []map[string][]byte, err error) {
+	start := time.Now()
+	defer func() {
+		measure(start, "SCANVALUE", err)
+	}()
+
+	return db.DB.ScanValue(ctx, table, count, values)
+}
+
 func (db DbWrapper) Update(ctx context.Context, table string, key string, values map[string][]byte) (err error) {
 	start := time.Now()
 	defer func() {
