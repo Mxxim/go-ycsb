@@ -37,6 +37,10 @@ run() {
         make
     fi
 
+    if [ "$storage" = "leveldb" ];then
+        rm -rf data/ldb && mkdir -p data/ldb
+    fi
+
     # load data
     ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
     # write only
@@ -50,9 +54,6 @@ run() {
     # scanvalue only with index
     ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true
 
-    if [ "$storage" = "leveldb" ];then
-        rm -rf data/ldb && mkdir -p data/ldb
-    fi
 }
 
 echo start && date
@@ -68,6 +69,10 @@ echo start && date
 #cd ${TEST_TOOL_PATH}
 #run mongodb 1M_2G 104858 10 && sleep 30
 #echo finish && date
+
+cd ${TEST_TOOL_PATH}
+run leveldb mytest 8 5 && sleep 30
+echo finish && date
 
 cd ${TEST_TOOL_PATH}
 run mongodb mytest 8 5 && sleep 30

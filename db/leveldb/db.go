@@ -1,6 +1,7 @@
 package leveldb
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/magiconair/properties"
@@ -67,19 +68,21 @@ func (db *LDBInstance) Read(ctx context.Context, table string, key string, field
 }
 
 func (db *LDBInstance) Scan(ctx context.Context, table string, startKey string, count int, fields []string) ([]map[string][]byte, error) {
-	fmt.Printf("=== leveldb scan, startKey = %s, count = %v, len(fields) = %v\n", startKey, count, len(fields))
+	//fmt.Printf("=== leveldb scan, startKey = %s, count = %v, len(fields) = %v\n", startKey, count, len(fields))
 	res := make([]map[string][]byte, count)
 	rowStartKey := db.getRowKey(table, startKey)
 	it := db.leveldb.NewIterator(&ldbutil.Range{Start: rowStartKey}, nil)
 	defer it.Release()
 
 	i := 0
+	it.Seek(rowStartKey)
 	for it = it; it.Valid() && i < count; it.Next() {
 		value := it.Value()
 		m, err := db.r.Decode(value, fields)
 		if err != nil {
 			return nil, err
 		}
+		//fmt.Println(m)
 		res[i] = m
 		i++
 	}
@@ -115,7 +118,7 @@ func (db *LDBInstance) Update(ctx context.Context, table string, key string, val
 }
 
 func (db *LDBInstance) Insert(ctx context.Context, table string, key string, values map[string][]byte) error {
-
+	//fmt.Printf("======= leveldb insert, key = %v, len(values) = %v\n", key, len(values))
 	rowKey := db.getRowKey(table, key)
 
 	buf := db.bufPool.Get()
@@ -132,7 +135,38 @@ func (db *LDBInstance) Insert(ctx context.Context, table string, key string, val
 func (db *LDBInstance) Delete(ctx context.Context, table string, key string) error { return nil }
 
 func (db *LDBInstance) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
-	return nil, nil
+	//fmt.Printf("=== leveldb scan value, count = %v, len(values) = %v\n", count, len(values))
+	res := make([]map[string][]byte, count)
+
+	it := db.leveldb.NewIterator(&ldbutil.Range{Start: db.getRowKey(table, ""), Limit: nil}, nil)
+	defer it.Release()
+
+	i := 0
+	it.Seek(db.getRowKey(table, ""))
+	fields := make([]string, 0)
+loop:
+	for it = it; it.Valid() && i < count; it.Next() {
+		value := it.Value()
+		m, err := db.r.Decode(value, fields)
+		if err != nil {
+			return nil, err
+		}
+
+		for fieldKey, fieldValue := range values {
+			if bytes.Compare(m[fieldKey], fieldValue) != 0 {
+				continue loop
+			}
+		}
+		//fmt.Println(m)
+		res[i] = m
+		i++
+	}
+
+	if err := it.Error(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (db *LDBInstance) getRowKey(table string, key string) []byte {

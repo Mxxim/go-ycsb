@@ -104,7 +104,7 @@ func (m *mongoDB) Insert(ctx context.Context, table string, key string, values m
 	doc := bson.M{"_id": key}
 	for k, v := range values {
 		//fmt.Println("------->>>>>>>")
-		fmt.Println(k, v)
+		//fmt.Println(k, v)
 		doc[k] = v
 	}
 	if _, err := m.coll.InsertOne(ctx, doc); err != nil {
