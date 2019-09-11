@@ -86,7 +86,7 @@ func (r *RowCodec) Encode(buf []byte, values map[string][]byte) ([]byte, error) 
 	colIDs := make([]int64, 0, len(values))
 
 	for k, v := range values {
-		fmt.Println(k, v)
+		//fmt.Println(k, v)
 		i := r.fieldIndices[k]
 		cols = append(cols, v)
 		colIDs = append(colIDs, i)
