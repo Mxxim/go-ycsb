@@ -81,7 +81,8 @@ type core struct {
 	valuePool sync.Pool
 
 	hasIndex bool
-	fieldValueGenerator ycsb.Generator
+	fieldValueGenerator ycsb.Generator // Sequential [0, 256）
+	fieldKeySequence    ycsb.Generator // Sequential [0, fieldcount)
 }
 
 func getFieldLengthGenerator(p *properties.Properties) ycsb.Generator {
@@ -210,13 +211,10 @@ func (c *core) buildValues(state *coreState, key string) map[string][]byte {
 // 给某几个field赋值 uniform value
 func (c *core) buildMultiUniformValues(state *coreState) map[string][]byte {
 	r := state.r
-	count := c.fieldChooser.Next(r)
-	if count == 0 {
-		count = 1
-	}
-	values := make(map[string][]byte, count)
+	count := c.fieldKeySequence.Next(r)
+	values := make(map[string][]byte, count+1)
 
-	for i :=0; i<int(count); i++ {
+	for i :=0; i<=int(count); i++ {
 		fieldKey := state.fieldNames[i]
 		buf := c.buildUniformValue(state)
 
@@ -313,6 +311,7 @@ func (c *core) DoInsert(ctx context.Context, db ycsb.DB) error {
 	values := make(map[string][]byte)
 	if c.hasIndex {
 		values = c.buildUniformValues(state)
+		defer c.putValues(values)
 	} else {
 		values = c.buildValues(state, dbKey)
 		defer c.putValues(values)
@@ -545,6 +544,7 @@ func (c *core) doTransactionInsert(ctx context.Context, db ycsb.DB, state *coreS
 	values := make(map[string][]byte)
 	if c.hasIndex {
 		values = c.buildUniformValues(state)
+		defer c.putValues(values)
 	} else {
 		values = c.buildValues(state, dbKey)
 		defer c.putValues(values)
@@ -724,6 +724,7 @@ func (coreCreator) Create(p *properties.Properties) (ycsb.Workload, error) {
 	c.keySequence = generator.NewCounter(insertStart)
 	c.operationChooser = createOperationGenerator(p)
 	c.fieldValueGenerator = generator.NewSequential(0, 255)
+	c.fieldKeySequence = generator.NewSequential(0, c.fieldCount-1)
 
 	c.transactionInsertKeySequence = generator.NewAcknowledgedCounter(c.recordCount)
 	switch requestDistrib {
