@@ -3,10 +3,10 @@
 TEST_TOOL_PATH=/Users/sammy/Workspace/go-ycsb/
 
 # 本脚本用于测试不同数据库的读写性能
-# ./bin/go-ycsb load leveldb -P workloads/workload_W > logs/leveldb_1M_2G_LOAD.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_W > logs/leveldb_1M_2G_W.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_R > logs/leveldb_1M_2G_R.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_S > logs/leveldb_1M_2G_S.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
+# ./bin/go-ycsb load leveldb -P workloads/workload_WRITE > logs/leveldb_1M_2G_LOAD.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
+# ./bin/go-ycsb run leveldb -P workloads/workload_WRITE > logs/leveldb_1M_2G_W.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
+# ./bin/go-ycsb run leveldb -P workloads/workload_READ > logs/leveldb_1M_2G_R.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
+# ./bin/go-ycsb run leveldb -P workloads/workload_SCAN > logs/leveldb_1M_2G_S.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
 
 
 # 操作次数
@@ -38,17 +38,17 @@ run() {
     fi
 
     # load data
-    ./bin/go-ycsb load ${storage} -P workloads/workload_W > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+    ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
     # write only
-    ./bin/go-ycsb run ${storage} -P workloads/workload_W > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+    ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
     # read only
-    ./bin/go-ycsb run ${storage} -P workloads/workload_R > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+    ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
     # scan only
-    ./bin/go-ycsb run ${storage} -P workloads/workload_S > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+    ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
     # scanvalue only without index
-    ./bin/go-ycsb run ${storage} -P workloads/workload_SV > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false
+    ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false
     # scanvalue only with index
-    ./bin/go-ycsb run ${storage} -P workloads/workload_SV > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true
+    ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true
 
     if [ "$storage" = "leveldb" ];then
         rm -rf data/ldb && mkdir -p data/ldb

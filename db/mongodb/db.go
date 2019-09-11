@@ -100,10 +100,10 @@ func (m *mongoDB) Scan(ctx context.Context, table string, startKey string, count
 
 // Insert a document.
 func (m *mongoDB) Insert(ctx context.Context, table string, key string, values map[string][]byte) error {
-	fmt.Printf("======= mongodb insert, key = %v, len(values) = %v\n", key, len(values))
+	//fmt.Printf("======= mongodb insert, key = %v, len(values) = %v\n", key, len(values))
 	doc := bson.M{"_id": key}
 	for k, v := range values {
-		fmt.Println("------->>>>>>>")
+		//fmt.Println("------->>>>>>>")
 		fmt.Println(k, v)
 		doc[k] = v
 	}
@@ -139,14 +139,14 @@ func (m *mongoDB) Delete(ctx context.Context, table string, key string) error {
 }
 
 func (m *mongoDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
-	fmt.Printf("=== mongodb scanvalue, count = %v, len(values) = %v\n", count, len(values))
+	//fmt.Printf("=== mongodb scanvalue, count = %v, len(values) = %v\n", count, len(values))
 	projection := map[string]bool{"_id": false}
 	limit := int64(count)
 	opt := &options.FindOptions{Projection: projection, Sort: bson.M{"_id": 1}, Limit: &limit}
 
 	bsonm := make(bson.M)
 	for k, v := range values {
-		fmt.Println(k, v)
+		//fmt.Println(k, v)
 		bsonm[k] = v
 	}
 
@@ -161,7 +161,7 @@ func (m *mongoDB) ScanValue(ctx context.Context, table string, count int, values
 		if err := cursor.Decode(&doc); err != nil {
 			return docs, fmt.Errorf("Scan error: %s", err.Error())
 		}
-		fmt.Println(doc)
+		//fmt.Println(doc)
 		docs = append(docs, doc)
 	}
 	return docs, nil
