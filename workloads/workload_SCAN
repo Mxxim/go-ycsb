@@ -27,3 +27,4 @@ hasIndex=false
 # mongodb索引列
 # 只有当 hasIndex 为true的时候，这个配置项才生效
 mongodb.indexs=field0,field1,field2
+couchbase.indexs=field0,field1,field2

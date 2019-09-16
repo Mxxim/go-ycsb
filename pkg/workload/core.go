@@ -241,6 +241,9 @@ func (c *core) buildUniformValue(state *coreState) []byte {
 	buf := c.getValueBuffer(int(c.fieldLengthGenerator.Next(r)))
 	if len(buf) > 0 {
 		buf[0] = byte(c.fieldValueGenerator.Next(r))
+		if buf[0] == 34 || buf[0] == 92{
+			buf[0] = byte(c.fieldValueGenerator.Next(r))
+		}
 		util.UniformBytes(buf[1:])
 	}
 	return buf

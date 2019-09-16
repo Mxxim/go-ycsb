@@ -35,3 +35,4 @@ dropIndex=true
 # - field0,field1
 # - field0
 mongodb.indexs=field0,field1,field2
+couchbase.indexs=field0,field1,field2
