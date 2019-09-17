@@ -102,6 +102,8 @@ github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c h1:964Od4U6p2jUkFxvCy
 github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
 github.com/google/go-cmp v0.2.0/go.mod h1:oXzfMopK8JAjlY9xF4vHSVASa0yLyX7SntLO5aqRK0M=
+github.com/google/go-querystring v1.0.0 h1:Xkwi/a1rcvNg1PPYe5vI8GbeBY/jrVuDX5ASuANWTrk=
+github.com/google/go-querystring v1.0.0/go.mod h1:odCYkC5MyYFN7vkCjXpyrEuKhc/BUO6wN/zVPAxq5ck=
 github.com/google/uuid v1.1.1 h1:Gkbcsh/GbpXz7lPftLA3P6TYMwjCLYm83jiFQZF/3gY=
 github.com/google/uuid v1.1.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/googleapis/gax-go v2.0.0+incompatible h1:j0GKcs05QVmm7yesiZq2+9cxHkNK9YM6zKx4D2qucQU=
@@ -186,6 +188,8 @@ github.com/remyoudompheng/bigfft v0.0.0-20170806203942-52369c62f446/go.mod h1:uY
 github.com/remyoudompheng/bigfft v0.0.0-20190512091148-babf20351dd7 h1:FUL3b97ZY2EPqg2NbXKuMHs5pXJB9hjj1fDHnF2vl28=
 github.com/remyoudompheng/bigfft v0.0.0-20190512091148-babf20351dd7/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
+github.com/segmentio/pointer v0.0.0-20160608003038-39719d2ea756 h1:Rj1wlwQTbrV3rihXqp9eoMCQnfiYDPoXchd+aCiRfSo=
+github.com/segmentio/pointer v0.0.0-20160608003038-39719d2ea756/go.mod h1:+4DA5YbNGo85y02v8eKi+5jRkcbjNActTs6jzkb3pMY=
 github.com/sirupsen/logrus v1.3.0 h1:hI/7Q+DtNZ2kINb6qt/lS+IyXnHQe9e90POfeewL/ME=
 github.com/sirupsen/logrus v1.3.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/soheilhy/cmux v0.1.4 h1:0HKaf1o97UwFjHH9o5XsHUOF+tqmdA7KEzXLpiyaw0E=
@@ -221,6 +225,10 @@ github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 h1:eY9dn8+vbi4tKz5
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/yuin/gopher-lua v0.0.0-20181031023651-12c4817b42c5 h1:d9vJ/8gXbVnNk8QFOxFZ7MN7TuHiuvolK1usz5KXVDo=
 github.com/yuin/gopher-lua v0.0.0-20181031023651-12c4817b42c5/go.mod h1:aEV29XrmTYFr3CiRxZeGHpkvbwq+prZduBqMaascyCU=
+github.com/zemirco/couchdb v0.0.0-20170316052722-83ed906ea1f0 h1:ncfUNmGoXbRQh2DKhjVQf1vJhm8njrTLJM9rCKytF3U=
+github.com/zemirco/couchdb v0.0.0-20170316052722-83ed906ea1f0/go.mod h1:2lfF+r2iYeSFAqVaSPmeojqCjuQvBWkwzD5lQIkGO8w=
+github.com/zemirco/uid v0.0.0-20160129141151-3763f3c45832 h1:NFzxrkF7I0/279WuZocYwF+ApZL9bMoLhoPi+H35Y4E=
+github.com/zemirco/uid v0.0.0-20160129141151-3763f3c45832/go.mod h1:F5gG5+oHA+576dKL4mEf0NxBfMjf/yNNV6lVAC85Y8U=
 go.etcd.io/bbolt v1.3.2 h1:Z/90sZLPOeCy2PwprqkFa25PdkusRzaj9P8zm/KNyvk=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.mongodb.org/mongo-driver v1.0.2 h1:RwjK1tKt7VPqQh3tsjiEqKJg75GNhP/loch+PwRc4ig=

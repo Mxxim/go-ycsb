@@ -26,6 +26,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gocql/gocql v0.0.0-20181124151448-70385f88b28b
 	github.com/gogo/protobuf v1.2.0 // indirect
+	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/googleapis/gax-go v2.0.0+incompatible // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -36,6 +37,7 @@ require (
 	github.com/pingcap/goleveldb v0.0.0-20171020122428-b9ff6c35079e
 	github.com/pingcap/kvproto v0.0.0-20190506024016-26344dff8f48 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20190512091148-babf20351dd7 // indirect
+	github.com/segmentio/pointer v0.0.0-20160608003038-39719d2ea756 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
@@ -45,6 +47,8 @@ require (
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20181031023651-12c4817b42c5 // indirect
+	github.com/zemirco/couchdb v0.0.0-20170316052722-83ed906ea1f0
+	github.com/zemirco/uid v0.0.0-20160129141151-3763f3c45832 // indirect
 	go.mongodb.org/mongo-driver v1.0.2
 	go.opencensus.io v0.18.0 // indirect
 	golang.org/x/crypto v0.0.0-20181126093934-9eb0be3963ea // indirect

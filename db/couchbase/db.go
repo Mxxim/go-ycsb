@@ -9,10 +9,11 @@ import (
 	"github.com/pingcap/go-ycsb/pkg/prop"
 	"github.com/pingcap/go-ycsb/pkg/ycsb"
 	"strings"
+	"time"
 )
 
 const (
-	dbname = "db11"
+	dbname = "db13"
 	couchbaseIndexs	 = "couchbase.indexs"
 	index_name = "test_index"
 )
@@ -58,8 +59,6 @@ func (c *couchbaseDB) Read(ctx context.Context, table string, key string, fields
 	if err != nil {
 		panic(err)
 	}
-	s := string(doc["field0"])
-	fmt.Println("doc:", s)
 	return doc, nil
 }
 
@@ -92,8 +91,8 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 		res = append(res, row)
 	}
 
-	fmt.Println(myQuery)
-	fmt.Println(res)
+	//fmt.Println(myQuery)
+	//fmt.Println(res)
 
 
 
@@ -118,10 +117,31 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		Username: "user",
 		Password: "password",
 	})
-	bu, err := cli.OpenBucket(dbname, "")
 
-	if err != nil {
-		panic(err)
+	//
+	//time.Sleep(3*time.Second)
+
+
+	bu, _ := cli.OpenBucket(dbname, "")
+	if bu == nil {
+		mgr := cli.Manager("user", "password")
+		err := mgr.InsertBucket(&gocb.BucketSettings{
+			FlushEnabled:  false,
+			IndexReplicas: false,
+			Name:          dbname,
+			Password:      "",
+			Quota:         100,
+			Replicas:      0,
+			Type:          0,
+		})
+		if err != nil {
+			panic(err)
+		}
+		time.Sleep(5 * time.Second)
+		bu, err = cli.OpenBucket(dbname, "")
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	cou := &couchbaseDB{
@@ -133,9 +153,9 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	if hasIndex {
 		cou.indexs = getAllField(p.GetString(couchbaseIndexs, ""))
 		if len(cou.indexs) > 0 {
-			fmt.Println("create index ....")
-			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
-			err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
+			//fmt.Println("create index ....")
+			//fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
+			_ = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
 			cou.hasIndex = hasIndex
 		}
 	}

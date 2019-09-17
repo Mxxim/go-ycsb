@@ -69,6 +69,8 @@ import (
 	_ "github.com/pingcap/go-ycsb/db/leveldb"
 	// Register couchbase database
 	_ "github.com/pingcap/go-ycsb/db/couchbase"
+	// Register couchdb database
+	_ "github.com/pingcap/go-ycsb/db/couchdb"
 )
 
 var (
