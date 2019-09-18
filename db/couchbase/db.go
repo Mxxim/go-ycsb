@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	dbname = "db13"
+	dbname = "db14"
 	couchbaseIndexs	 = "couchbase.indexs"
 	index_name = "test_index"
 )
@@ -132,17 +132,23 @@ type couchbaseCreator struct {
 }
 
 func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
-	cli, _ := gocb.Connect("http://127.0.0.1:8091/")
-	_ = cli.Authenticate(gocb.PasswordAuthenticator{
+	cli, err := gocb.Connect("http://127.0.0.1:8091/")
+	if err != nil {
+		panic(err)
+	}
+	err = cli.Authenticate(gocb.PasswordAuthenticator{
 		Username: "user",
 		Password: "password",
 	})
+	if err != nil {
+		panic(err)
+	}
 
-	//
-	//time.Sleep(3*time.Second)
 
-
-	bu, _ := cli.OpenBucket(dbname, "")
+	bu, err := cli.OpenBucket(dbname, "")
+	if err != nil {
+		fmt.Println(err)
+	}
 	if bu == nil {
 		mgr := cli.Manager("user", "password")
 		err := mgr.InsertBucket(&gocb.BucketSettings{
