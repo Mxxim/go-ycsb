@@ -5,11 +5,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/magiconair/properties"
 	"github.com/pingcap/go-ycsb/pkg/prop"
 	"github.com/pingcap/go-ycsb/pkg/ycsb"
 	"github.com/zemirco/couchdb"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -27,7 +29,9 @@ type couchDB struct {
 
 	hasIndex bool
 	indexs []string
+	indexId string
 	shouldDropIndex bool
+	shouldDropDatabase bool
 }
 type jsonField struct {
 	Fields []string `json:"fields"`
@@ -52,17 +56,67 @@ func (m *couchDB) InitThread(ctx context.Context, threadID int, threadCount int)
 }
 
 func (m *couchDB) CleanupThread(ctx context.Context) {
+	if m.shouldDropIndex {
+		// 删除所有索引
+		start := time.Now()
+		//TODO 需要测试删除是否成功 ok 是否为true
+		res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+m.indexId+"/json/test_index", nil, "application/json")
+		if err != nil {
+			fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
+		} else if err == nil && res != nil {
+			jsonResult := make(map[string]interface{})
+			decoder := json.NewDecoder(res.Body)
+			decoder.UseNumber()
+			if err = decoder.Decode(&jsonResult); err != nil {
+				fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
+			} else if ok := jsonResult["ok"].(bool); !ok {
+				fmt.Println("[ERROR] failed to drop all indexs")
+			}
+		}
+		defer closeResponseBody(res)
+		fmt.Printf("drop all indexs time used: %v\n", time.Now().Sub(start))
+	}
+
+	if m.shouldDropDatabase {
+		// 删除所有db
+		start := time.Now()
+		//TODO 需要测试删除是否成功 ok 是否为true
+		res, err := m.cli.Request(http.MethodDelete, "/db", nil, "application/json")
+		if err != nil {
+			fmt.Printf("[ERROR] drop all databases error: %v\n", err)
+		} else if err == nil && res != nil {
+			jsonResult := make(map[string]interface{})
+			decoder := json.NewDecoder(res.Body)
+			decoder.UseNumber()
+			if err = decoder.Decode(&jsonResult); err != nil {
+				fmt.Printf("[ERROR] drop all databases error: %v\n", err)
+			} else if ok := jsonResult["ok"].(bool); !ok {
+				fmt.Println("[ERROR] failed to drop all databases")
+			}
+		}
+		defer closeResponseBody(res)
+		fmt.Printf("drop all databases time used: %v\n", time.Now().Sub(start))
+	}
 }
 
 func (m *couchDB) Read(ctx context.Context, table string, key string, fields []string) (map[string][]byte, error) {
 	var doc map[string][]byte
 	//d := couchdb.CouchDoc()
+	//TODO 应该可以指定要返回哪些fields吧？行为需要与mongodb的实现保持一致
 	res, err := m.cli.Request(http.MethodGet, "/db/" + key, nil, "application/json")
 	if err != nil {
 		 panic(err)
 	}
-	defer res.Body.Close()
-	_ = json.NewDecoder(res.Body).Decode(doc)
+	defer closeResponseBody(res)
+	if res.StatusCode == 200 {
+		err = json.NewDecoder(res.Body).Decode(doc)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		fmt.Printf("[ERROR] we may can not find document '%v', because the response status code is %v\n", key, res.StatusCode)
+	}
+
 	return doc, nil
 }
 
@@ -84,10 +138,27 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	var jsonStr = "{\"selector\":" + selectorStr +",\"use_index\":\"test_index\"}"
 
 	b := bytes.NewBufferString(jsonStr)
-	_, err := m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
-
+	res, err := m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
 	if err != nil {
 		panic(err)
+	}
+	defer closeResponseBody(res)
+
+	var response map[string]interface{}
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', err: %v\n", err)
+	} else {
+		docs, ok := response["docs"].([]map[string]interface{})
+		if !ok {
+			fmt.Println("[ERROR] failed to convert 'docs' type from 'PUT /{dbname}/{docId}' response")
+		} else if ok && len(docs) == 0 {
+			fmt.Println("[ERROR] we have not get result from db, the method ScanValue() has exception!!!")
+		} else {
+			//TODO ScanValue() 的实现里，必须遍历查询得到的结果！！行为与mongodb和leveldb的实现保持一致！
+			//TODO 只有这样，统计结果才有对比性
+		}
+
 	}
 	return nil, nil
 }
@@ -110,21 +181,31 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 		}
 	}
 	key = "\"" + key + "\""
-	var jsonStr = "{" +
-						"\"docs\":[" +
-							"{" +
-		"\"_id\":" + key + "," + fieldstring +
-							"}" +
-		"]}"
+	var jsonStr = "{" + fieldstring + "}"
+	//var jsonStr = "{" +
+	//					"\"docs\":[" +
+	//						"{" +
+	//	"\"_id\":" + key + "," + fieldstring +
+	//						"}" +
+	//	"]}"
 	// fmt.Println(jsonStr)
 	//jsonStr := "{\"docs\":[{\"_id\":\"user1000\",\"field0\":\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU\",\"field1\":\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU\",\"field2\":\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU\"}]}"
 
 	b := bytes.NewBufferString(jsonStr)
 
-
-	_, err :=m.cli.Request(http.MethodPost, "/db/_bulk_docs", b, "application/json;charset=UTF-8")
+	//res, err :=m.cli.Request(http.MethodPost, "/db/_bulk_docs", b, "application/json;charset=UTF-8")
+	res, err :=m.cli.Request(http.MethodPut, "/db/"+key, b, "application/json;charset=UTF-8")
 	if err != nil {
 		panic(err)
+	}
+	defer closeResponseBody(res)
+
+	var response couchdb.DocumentResponse
+	err = json.NewDecoder(res.Body).Decode(&response)
+	if err != nil {
+		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', err: %v\n", err)
+	} else if err == nil && !response.Ok {
+		fmt.Println("[ERROR] failed to insert a document")
 	}
 	// fmt.Println(res)
 	return nil
@@ -179,6 +260,8 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	cou := &couchDB{
 		cli: client,
 		database: db,
+		shouldDropIndex:    p.GetBool(prop.DropIndex, prop.DropIndexDefault),
+		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
 
 	}
 	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)
@@ -202,14 +285,21 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 			res, err := client.Request(http.MethodPost, "/db/_index", &b, "application/json")
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
-			defer res.Body.Close()
+			defer closeResponseBody(res)
+			//TODO 官网返回的接口字段都是小写字母开头，DocumentResponse没有json标签，确定这里可以反序列化到值？？
 			var response couchdb.DocumentResponse
-			_ = json.NewDecoder(res.Body).Decode(&response)
-
+			err = json.NewDecoder(res.Body).Decode(&response)
+			if err != nil {
+				return nil, err
+			} else if err == nil && !response.Ok {
+				fmt.Println("[ERROR] failed to create index by 'POST /db/_index'")
+				return nil, errors.New("[ERROR] failed to create index by 'POST /db/_index'")
+			}
 
 			cou.hasIndex = hasIndex
+			cou.indexId = response.ID
 		}
 	}
 	return cou, nil
@@ -248,4 +338,13 @@ func Post(url string, data interface{}, contentType string) (content string) {
 	result, _ := ioutil.ReadAll(resp.Body)
 	content = string(result)
 	return
+}
+
+// closeResponseBody discards the body and then closes it to enable returning it to
+// connection pool
+func closeResponseBody(resp *http.Response) {
+	if resp != nil {
+		io.Copy(ioutil.Discard, resp.Body) // discard whatever is remaining of body
+		resp.Body.Close()
+	}
 }

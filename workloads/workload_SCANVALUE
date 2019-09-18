@@ -26,7 +26,9 @@ scanvalueproportion=1
 hasIndex=false
 
 # 是否在操作完成后删除所有索引
-dropIndex=true
+dropIndex=false
+# 是否在操作完成后删除所有db
+dropDatabase=false
 
 # mongodb索引列
 # 只有当 hasIndex 为true的时候，这个配置项才生效，它将会创建一个复合索引，

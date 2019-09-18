@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
 	"strings"
+	"time"
 )
 
 const (
@@ -35,9 +36,10 @@ type mongoDB struct {
 	collname string
 	coll     *mongo.Collection
 
-	hasIndex bool
-	indexs []string
-	shouldDropIndex bool
+	hasIndex           bool
+	indexs             []string
+	shouldDropIndex    bool
+	shouldDropDatabase bool
 }
 
 func (m *mongoDB) Close() error {
@@ -48,15 +50,28 @@ func (m *mongoDB) InitThread(ctx context.Context, threadID int, threadCount int)
 	return ctx
 }
 
+// 清空数据库的操作需要消耗时间，务必打印出清空所需的时间，
+// 以便在统计结果的时候，得到测试真正消耗的时间
 func (m *mongoDB) CleanupThread(ctx context.Context) {
 	if m.shouldDropIndex {
 		// 删除所有索引
+		start := time.Now()
 		indexView := m.coll.Indexes()
 		_, err := indexView.DropAll(context.Background(), options.DropIndexes())
 		if err != nil {
-			fmt.Printf("Drop error: %s\n", err.Error())
-			return
+			fmt.Printf("[ERROR] Drop index error: %s\n", err.Error())
 		}
+		fmt.Printf("drop all indexs time used: %v\n", time.Now().Sub(start))
+	}
+
+	// 删除所有数据库
+	if m.shouldDropDatabase {
+		start := time.Now()
+		err := m.cli.Database(m.dbname).Drop(ctx)
+		if err != nil {
+			fmt.Printf("[ERROR] Drop database error: %s\n", err.Error())
+		}
+		fmt.Printf("drop all databases time used: %v\n", time.Now().Sub(start))
 	}
 }
 
@@ -214,11 +229,12 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 	coll := cli.Database(ns.DB).Collection(ns.Collection)
 	m := &mongoDB{
-		cli:      cli,
-		dbname:   ns.DB,
-		collname: ns.Collection,
-		coll:     coll,
-		shouldDropIndex: p.GetBool(prop.DropIndex, prop.DropIndexDefault),
+		cli:                cli,
+		dbname:             ns.DB,
+		collname:           ns.Collection,
+		coll:               coll,
+		shouldDropIndex:    p.GetBool(prop.DropIndex, prop.DropIndexDefault),
+		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
 	}
 
 	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)

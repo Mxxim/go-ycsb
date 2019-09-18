@@ -25,6 +25,7 @@ type couchbaseDB struct {
 	hasIndex bool
 	indexs []string
 	shouldDropIndex bool
+	shouldDropDatabase bool
 }
 
 func (c *couchbaseDB) Close() error {
@@ -51,6 +52,20 @@ func (c *couchbaseDB) InitThread(ctx context.Context, threadID int, threadCount 
 }
 
 func (c *couchbaseDB) CleanupThread(ctx context.Context) {
+	if c.shouldDropIndex {
+		// 删除所有索引
+		start := time.Now()
+		//TODO
+
+		fmt.Printf("drop all indexs time used: %v\n", time.Now().Sub(start))
+	}
+
+	if c.shouldDropDatabase {
+		start := time.Now()
+		//TODO
+
+		fmt.Printf("drop all databases time used: %v\n", time.Now().Sub(start))
+	}
 }
 
 func (c *couchbaseDB) Read(ctx context.Context, table string, key string, fields []string) (map[string][]byte, error) {
@@ -147,6 +162,8 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	cou := &couchbaseDB{
 		cli: cli,
 		database: bu,
+		shouldDropIndex:    p.GetBool(prop.DropIndex, prop.DropIndexDefault),
+		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
 	}
 
 	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)

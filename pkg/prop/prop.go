@@ -114,4 +114,6 @@ const (
 	HasIndexDefault = false
 	DropIndex = "dropIndex"
 	DropIndexDefault = false
+	DropDatabase = "dropDatabase"
+	DropDatabaseDefault = false
 )
