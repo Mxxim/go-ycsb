@@ -78,9 +78,9 @@ run mongodb 1M_1G 209716 5 2000 1024 && sleep 30
 echo finish && date
 
 ##### couchbase 1mb/op, total 1G
-cd ${TEST_TOOL_PATH}
-run couchbase 1M_1G 209716 5 2000 1024 && sleep 30
-echo finish && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 1M_1G 209716 5 2000 1024 && sleep 30
+#echo finish && date
 
 
 ##### leveldb 1mb/op, total 16G
@@ -94,9 +94,9 @@ run mongodb 1M_16G 209716 5 2000 16384 && sleep 30
 echo finish && date
 
 ##### couchbase 1mb/op, total 16G
-cd ${TEST_TOOL_PATH}
-run couchbase 1M_16G 209716 5 2000 16384 && sleep 30
-echo finish && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 1M_16G 209716 5 2000 16384 && sleep 30
+#echo finish && date
 
 
 ##### leveldb 1mb/op, total 256G
@@ -110,9 +110,9 @@ run mongodb 1M_256G 209716 5 2000 262144 && sleep 30
 echo finish && date
 
 ##### couchbase 1mb/op, total 256G
-cd ${TEST_TOOL_PATH}
-run couchbase 1M_256G 209716 5 2000 262144 && sleep 30
-echo finish && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 1M_256G 209716 5 2000 262144 && sleep 30
+#echo finish && date
 
 
 
