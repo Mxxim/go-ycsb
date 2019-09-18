@@ -53,7 +53,7 @@ func (m *mongoDB) InitThread(ctx context.Context, threadID int, threadCount int)
 // 清空数据库的操作需要消耗时间，务必打印出清空所需的时间，
 // 以便在统计结果的时候，得到测试真正消耗的时间
 func (m *mongoDB) CleanupThread(ctx context.Context) {
-	if m.shouldDropIndex {
+	if m.shouldDropIndex && m.hasIndex {
 		// 删除所有索引
 		start := time.Now()
 		indexView := m.coll.Indexes()
@@ -123,7 +123,7 @@ func (m *mongoDB) Insert(ctx context.Context, table string, key string, values m
 		doc[k] = v
 	}
 	if _, err := m.coll.InsertOne(ctx, doc); err != nil {
-		fmt.Println(err)
+		fmt.Printf("[ERROR] insert a document failed, err: %v\n", err)
 		return fmt.Errorf("Insert error: %s", err.Error())
 	}
 	return nil
@@ -243,6 +243,8 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		if len(m.indexs) > 0 {
 			fmt.Println("create index ....")
 			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, m.indexs)
+			start := time.Now()
+
 			indexView := coll.Indexes()
 
 			var bsonxD bsonx.Doc
@@ -257,7 +259,9 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			m.hasIndex = hasIndex
+			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 		}
 	}
 	return m, nil

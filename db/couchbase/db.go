@@ -52,7 +52,7 @@ func (c *couchbaseDB) InitThread(ctx context.Context, threadID int, threadCount 
 }
 
 func (c *couchbaseDB) CleanupThread(ctx context.Context) {
-	if c.shouldDropIndex {
+	if c.shouldDropIndex && c.hasIndex {
 		// 删除所有索引
 		start := time.Now()
 		err := c.database.Manager("", "").DropIndex(index_name, true)
@@ -175,10 +175,12 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	if hasIndex {
 		cou.indexs = getAllField(p.GetString(couchbaseIndexs, ""))
 		if len(cou.indexs) > 0 {
-			//fmt.Println("create index ....")
-			//fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
+			fmt.Println("create index ....")
+			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
+			start := time.Now()
 			_ = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
 			cou.hasIndex = hasIndex
+			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 		}
 	}
 	return cou, nil

@@ -63,7 +63,7 @@ func (m *couchDB) InitThread(ctx context.Context, threadID int, threadCount int)
 }
 
 func (m *couchDB) CleanupThread(ctx context.Context) {
-	if m.shouldDropIndex {
+	if m.shouldDropIndex && m.hasIndex {
 		// 删除所有索引
 		start := time.Now()
 		//TODO 需要测试删除是否成功 ok 是否为true
@@ -161,7 +161,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 		if !ok {
 			fmt.Println("[ERROR] failed to convert 'docs' type from 'PUT /{dbname}/{docId}' response")
 		} else if ok && len(docsVal) == 0 {
-			// fmt.Println("[ERROR] we have not get result from db, the method ScanValue() has exception!!!")
+			fmt.Println("[ERROR] we have not get result from db, the method ScanValue() has exception!!!")
 		} else {
 			for _, v := range docsVal {
 				doc, ok := v.(map[string]interface{})
@@ -216,7 +216,7 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 	defer closeResponseBody(res)
 	if res.StatusCode != 201 && res.StatusCode != 202 {
 		fmt.Println("[ERROR] failed to insert a document")
-		return nil
+		return errors.New("[ERROR] failed to insert a document")
 	}
 	var response DocumentResponse
 
@@ -287,9 +287,9 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	if hasIndex {
 		cou.indexs = getAllField(p.GetString(couchdbIndexs, ""))
 		if len(cou.indexs) > 0 {
-			//fmt.Println("create index ....")
-			//fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
-			//err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
+			fmt.Println("create index ....")
+			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
+			start := time.Now()
 
 			data_field := jsonField{Fields:cou.indexs}
 			data_object := jsonData{
@@ -316,6 +316,7 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			err = json.NewDecoder(res.Body).Decode(&response)
 			cou.hasIndex = hasIndex
 			cou.indexId = response.ID
+			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 		}
 	}
 	return cou, nil
