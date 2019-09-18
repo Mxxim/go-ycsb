@@ -93,6 +93,22 @@ run() {
         # scanvalue only with index
         ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
     fi
+
+    if [ "$storage" = "couchbase" ];then
+
+        curl -u user:password -v -X POST http://127.0.0.1:8091/nodes/self/controller/settings -d path=/opt/couchbasedb/path -d index_path=/opt/couchbasedb/index_path -d cbas_path=/opt/couchbasedb/cbas_path
+
+        curl -u user:password -v -X POST http://127.0.0.1:8091/settings/web -d password=password -d username=user -d port=8091
+
+        # load data
+        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+        # write only
+        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+        # read only
+        ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+        # scanvalue only with index
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
+    fi
 }
 
 echo start && date
@@ -114,9 +130,9 @@ run mongodb 200b_1G 320 5 2000 671089 && sleep 30
 echo finish && date
 
 ##### couchbase 200b/op, total 1G
-#cd ${TEST_TOOL_PATH}
-#run couchbase 200b_1G 320 5 2000 671089 && sleep 30
-#echo finish && date
+cd ${TEST_TOOL_PATH}
+run couchbase 200b_1G 320 5 2000 671089 && sleep 30
+echo finish && date
 
 
 ##### leveldb 200b/op, total 16G
@@ -130,9 +146,9 @@ run mongodb 200b_16G 320 5 2000 10737418 && sleep 30
 echo finish && date
 
 ##### couchbase 200b/op, total 16G
-#cd ${TEST_TOOL_PATH}
-#run couchbase 200b_16G 320 5 2000 10737418 && sleep 30
-#echo finish && date
+cd ${TEST_TOOL_PATH}
+run couchbase 200b_16G 320 5 2000 10737418 && sleep 30
+echo finish && date
 
 
 ##### leveldb 200b/op, total 256G
@@ -146,9 +162,9 @@ run mongodb 200b_256G 320 5 2000 171798692 && sleep 30
 echo finish && date
 
 ##### couchbase 200b/op, total 256G
-#cd ${TEST_TOOL_PATH}
-#run couchbase 200b_256G 320 5 2000 171798692 && sleep 30
-#echo finish && date
+cd ${TEST_TOOL_PATH}
+run couchbase 200b_256G 320 5 2000 171798692 && sleep 30
+echo finish && date
 
 
 

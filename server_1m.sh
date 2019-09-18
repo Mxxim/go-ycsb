@@ -92,6 +92,22 @@ run() {
         # scanvalue only with index
         ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
     fi
+
+    if [ "$storage" = "couchbase" ];then
+
+        curl -u user:password -v -X POST http://127.0.0.1:8091/nodes/self/controller/settings -d path=/opt/couchbasedb/path -d index_path=/opt/couchbasedb/index_path -d cbas_path=/opt/couchbasedb/cbas_path
+
+        curl -u user:password -v -X POST http://127.0.0.1:8091/settings/web -d password=password -d username=user -d port=8091
+
+        # load data
+        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+        # write only
+        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+        # read only
+        ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+        # scanvalue only with index
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
+    fi
 }
 
 echo start && date
@@ -102,7 +118,7 @@ echo start && date
 #fieldCount=$4
 #scanCount=$5
 
-##### leveldb 1mb/op, total 1G
+#### leveldb 1mb/op, total 1G
 cd ${TEST_TOOL_PATH}
 run leveldb 1M_1G 209716 5 2000 1024 && sleep 30
 echo finish && date
@@ -112,13 +128,13 @@ cd ${TEST_TOOL_PATH}
 run mongodb 1M_1G 209716 5 2000 1024 && sleep 30
 echo finish && date
 
-##### couchbase 1mb/op, total 1G
-#cd ${TEST_TOOL_PATH}
-#run couchbase 1M_1G 209716 5 2000 1024 && sleep 30
-#echo finish && date
+#### couchbase 1mb/op, total 1G
+ cd ${TEST_TOOL_PATH}
+run couchbase 1M_1G 209716 5 2000 1024 && sleep 30
+echo finish && date
 
 
-##### leveldb 1mb/op, total 16G
+#### leveldb 1mb/op, total 16G
 cd ${TEST_TOOL_PATH}
 run leveldb 1M_16G 209716 5 2000 16384 && sleep 30
 echo finish && date
@@ -128,13 +144,13 @@ cd ${TEST_TOOL_PATH}
 run mongodb 1M_16G 209716 5 2000 16384 && sleep 30
 echo finish && date
 
-##### couchbase 1mb/op, total 16G
-#cd ${TEST_TOOL_PATH}
-#run couchbase 1M_16G 209716 5 2000 16384 && sleep 30
-#echo finish && date
+#### couchbase 1mb/op, total 16G
+cd ${TEST_TOOL_PATH}
+run couchbase 1M_16G 209716 5 2000 16384 && sleep 30
+echo finish && date
 
 
-##### leveldb 1mb/op, total 256G
+#### leveldb 1mb/op, total 256G
 cd ${TEST_TOOL_PATH}
 run leveldb 1M_256G 209716 5 2000 262144 && sleep 30
 echo finish && date
@@ -145,9 +161,9 @@ run mongodb 1M_256G 209716 5 2000 262144 && sleep 30
 echo finish && date
 
 ##### couchbase 1mb/op, total 256G
-#cd ${TEST_TOOL_PATH}
-#run couchbase 1M_256G 209716 5 2000 262144 && sleep 30
-#echo finish && date
+cd ${TEST_TOOL_PATH}
+run couchbase 1M_256G 209716 5 2000 262144 && sleep 30
+echo finish && date
 
 
 
