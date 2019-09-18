@@ -42,9 +42,16 @@ type jsonData struct {
 	Name string `json:"name"`
 }
 
-type dummyDocument struct {
-	couchdb.Document
-	Data string
+type DResponse struct {
+	Result  string    `json:"result"`
+	ID  string  `json:"id"`
+	Name string  `json:"name"`
+}
+
+type DocumentResponse struct {
+	Ok  bool    `json:"ok"`
+	Id  string  `json:"id"`
+	Rev string  `json:"rev"`
 }
 
 func (m *couchDB) Close() error {
@@ -100,7 +107,7 @@ func (m *couchDB) CleanupThread(ctx context.Context) {
 }
 
 func (m *couchDB) Read(ctx context.Context, table string, key string, fields []string) (map[string][]byte, error) {
-	var doc map[string][]byte
+	var doc map[string]interface{}
 	//d := couchdb.CouchDoc()
 	//TODO 应该可以指定要返回哪些fields吧？行为需要与mongodb的实现保持一致
 	res, err := m.cli.Request(http.MethodGet, "/db/" + key, nil, "application/json")
@@ -109,7 +116,7 @@ func (m *couchDB) Read(ctx context.Context, table string, key string, fields []s
 	}
 	defer closeResponseBody(res)
 	if res.StatusCode == 200 {
-		err = json.NewDecoder(res.Body).Decode(doc)
+		err = json.NewDecoder(res.Body).Decode(&doc)
 		if err != nil {
 			panic(err)
 		}
@@ -117,7 +124,7 @@ func (m *couchDB) Read(ctx context.Context, table string, key string, fields []s
 		fmt.Printf("[ERROR] we may can not find document '%v', because the response status code is %v\n", key, res.StatusCode)
 	}
 
-	return doc, nil
+	return nil, nil
 }
 
 func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
@@ -144,19 +151,27 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	}
 	defer closeResponseBody(res)
 
+	var docs []map[string]interface{}
 	var response map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', err: %v\n", err)
 	} else {
-		docs, ok := response["docs"].([]map[string]interface{})
+		docsVal, ok := response["docs"].([]interface{})
 		if !ok {
 			fmt.Println("[ERROR] failed to convert 'docs' type from 'PUT /{dbname}/{docId}' response")
-		} else if ok && len(docs) == 0 {
-			fmt.Println("[ERROR] we have not get result from db, the method ScanValue() has exception!!!")
+		} else if ok && len(docsVal) == 0 {
+			// fmt.Println("[ERROR] we have not get result from db, the method ScanValue() has exception!!!")
 		} else {
-			//TODO ScanValue() 的实现里，必须遍历查询得到的结果！！行为与mongodb和leveldb的实现保持一致！
-			//TODO 只有这样，统计结果才有对比性
+			for _, v := range docsVal {
+				doc, ok := v.(map[string]interface{})
+				if !ok {
+					fmt.Println("[ERROR] failed to convert 'docsVal' type from 'PUT /{dbname}/{docId}' response")
+				} else {
+					docs = append(docs, doc)
+				}
+
+			}
 		}
 
 	}
@@ -199,8 +214,12 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 		panic(err)
 	}
 	defer closeResponseBody(res)
+	if res.StatusCode != 201 && res.StatusCode != 202 {
+		fmt.Println("[ERROR] failed to insert a document")
+		return nil
+	}
+	var response DocumentResponse
 
-	var response couchdb.DocumentResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', err: %v\n", err)
@@ -288,16 +307,13 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 				return nil, err
 			}
 			defer closeResponseBody(res)
-			//TODO 官网返回的接口字段都是小写字母开头，DocumentResponse没有json标签，确定这里可以反序列化到值？？
-			var response couchdb.DocumentResponse
-			err = json.NewDecoder(res.Body).Decode(&response)
-			if err != nil {
-				return nil, err
-			} else if err == nil && !response.Ok {
+
+			if res.StatusCode != 200 {
 				fmt.Println("[ERROR] failed to create index by 'POST /db/_index'")
 				return nil, errors.New("[ERROR] failed to create index by 'POST /db/_index'")
 			}
-
+			var response DResponse
+			err = json.NewDecoder(res.Body).Decode(&response)
 			cou.hasIndex = hasIndex
 			cou.indexId = response.ID
 		}
