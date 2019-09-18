@@ -2,22 +2,6 @@
 
 TEST_TOOL_PATH=/home/zhengbc/go-ycsb/
 
-# 本脚本用于测试不同数据库的读写性能
-# ./bin/go-ycsb load leveldb -P workloads/workload_WRITE > logs/leveldb_1M_2G_LOAD.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_WRITE > logs/leveldb_1M_2G_W.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_READ > logs/leveldb_1M_2G_R.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_SCAN > logs/leveldb_1M_2G_S.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-
-#
-## 操作次数
-#OPERATIONCOUNT=$1
-#
-#if [ ! -n "$1" ];then
-#        OPERATIONCOUNT=1000
-#fi
-#
-#echo "OPERATIONCOUNT is $OPERATIONCOUNT"
-
 ######参数说明
 # 1 - 数据库名称
 # 2 - 测试记录文件名称

@@ -2,21 +2,36 @@
 
 TEST_TOOL_PATH=/home/zhengbc/go-ycsb/
 
-# 本脚本用于测试不同数据库的读写性能
-# ./bin/go-ycsb load leveldb -P workloads/workload_WRITE > logs/leveldb_1M_2G_LOAD.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_WRITE > logs/leveldb_1M_2G_W.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_READ > logs/leveldb_1M_2G_R.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
-# ./bin/go-ycsb run leveldb -P workloads/workload_SCAN > logs/leveldb_1M_2G_S.txt -p insertorder=ordered -p randomizedelay=false -p fieldlength=104858 -p fieldcount=10
+# system type
+_SYSTYPE="MAC"
+LEVELDB_PATH="data/leveldb"
 
-#
-## 操作次数
-#OPERATIONCOUNT=$1
-#
-#if [ ! -n "$1" ];then
-#        OPERATIONCOUNT=1000
-#fi
-#
-#echo "OPERATIONCOUNT is $OPERATIONCOUNT"
+# set environment
+f_set_env(){
+    case "$OSTYPE" in
+      darwin*)
+        echo "RUN SCRIPTS ON OSX"
+        _SYSTYPE="MAC"
+      ;;
+      linux*)
+        echo "RUN SCRIPTS ON LINUX"
+        _SYSTYPE="LINUX"
+      ;;
+      *)
+        echo "unknown: $OSTYPE"
+        exit -1
+      ;;
+    esac
+}
+
+# set system type
+f_set_env
+
+if [ ${_SYSTYPE} = "MAC" ]; then
+    LEVELDB_PATH="data/leveldb"
+else
+    LEVELDB_PATH="/opt/leveldb/data"
+fi
 
 ######参数说明
 # 1 - 数据库名称
@@ -42,28 +57,28 @@ run() {
     fi
 
 
-    if [ "$storage" = "leveldb"];then
+    if [ "$storage" = "leveldb" ];then
         # load data
-        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=/opt/leveldb/data
+        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=$LEVELDB_PATH
 
         # write only
-        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=/opt/leveldb/data
+        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=$LEVELDB_PATH
 
         # scan only
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=/opt/leveldb/data
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=$LEVELDB_PATH
 
         # read only
-        ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=/opt/leveldb/data
+        ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=$LEVELDB_PATH
 
         # scanvalue only without index
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=false
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=false -p leveldb.path=$LEVELDB_PATH
 
         # scanvalue only with index
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true -p leveldb.path=$LEVELDB_PATH
     fi
 
 
-    if [ "$storage" = "mongodb"];then
+    if [ "$storage" = "mongodb" ];then
         # load data
         ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
         # write only
@@ -73,9 +88,9 @@ run() {
         # scan only
         ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
         # scanvalue only without index
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=false -p leveldb.path=/opt/leveldb/data
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=false
         # scanvalue only with index
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true -p leveldb.path=/opt/leveldb/data
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
     fi
 }
 
