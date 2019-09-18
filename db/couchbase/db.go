@@ -55,15 +55,20 @@ func (c *couchbaseDB) CleanupThread(ctx context.Context) {
 	if c.shouldDropIndex {
 		// 删除所有索引
 		start := time.Now()
-		//TODO
-
+		err := c.database.Manager("", "").DropIndex(index_name, true)
+		if err != nil {
+			fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
+		}
 		fmt.Printf("drop all indexs time used: %v\n", time.Now().Sub(start))
 	}
 
 	if c.shouldDropDatabase {
 		start := time.Now()
-		//TODO
-
+		mgr := c.cli.Manager("user", "password")
+		err := mgr.RemoveBucket(dbname)
+		if err != nil {
+			fmt.Printf("[ERROR] drop all database error: %v\n", err)
+		}
 		fmt.Printf("drop all databases time used: %v\n", time.Now().Sub(start))
 	}
 }

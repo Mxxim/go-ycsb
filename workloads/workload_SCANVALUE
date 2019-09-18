@@ -2,7 +2,7 @@
 # scan value only
 
 recordcount=1000
-operationcount=1000
+operationcount=100
 workload=core
 
 insertorder=ordered
