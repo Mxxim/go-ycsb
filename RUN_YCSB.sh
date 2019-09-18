@@ -41,6 +41,7 @@ run() {
         rm -rf data/ldb && mkdir -p data/ldb
     fi
 
+
     # load data
     ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
     # write only
@@ -70,11 +71,11 @@ echo start && date
 #run mongodb 1M_2G 104858 10 && sleep 30
 #echo finish && date
 
-cd ${TEST_TOOL_PATH}
-run leveldb mytest 8 5 && sleep 30
-echo finish && date
-
-cd ${TEST_TOOL_PATH}
-run mongodb mytest 8 5 && sleep 30
-echo finish && date
+#cd ${TEST_TOOL_PATH}
+#run leveldb mytest 8 5 && sleep 30
+#echo finish && date
+#
+#cd ${TEST_TOOL_PATH}
+#run mongodb mytest 8 5 && sleep 30
+#echo finish && date
 
