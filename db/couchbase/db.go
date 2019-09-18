@@ -145,7 +145,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	}
 
 
-	bu, err := cli.OpenBucket(dbname, "")
+	bu, err := cli.OpenBucket(dbname, "123456")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -155,7 +155,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			FlushEnabled:  false,
 			IndexReplicas: false,
 			Name:          dbname,
-			Password:      "",
+			Password:      "123456",
 			Quota:         100,
 			Replicas:      0,
 			Type:          0,
@@ -164,7 +164,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			panic(err)
 		}
 		time.Sleep(5 * time.Second)
-		bu, err = cli.OpenBucket(dbname, "")
+		bu, err = cli.OpenBucket(dbname, "123456")
 		if err != nil {
 			panic(err)
 		}
