@@ -66,7 +66,6 @@ func (m *couchDB) CleanupThread(ctx context.Context) {
 	if m.shouldDropIndex && m.hasIndex {
 		// 删除所有索引
 		start := time.Now()
-		//TODO 需要测试删除是否成功 ok 是否为true
 		res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+m.indexId+"/json/test_index", nil, "application/json")
 		if err != nil {
 			fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
@@ -87,7 +86,6 @@ func (m *couchDB) CleanupThread(ctx context.Context) {
 	if m.shouldDropDatabase {
 		// 删除所有db
 		start := time.Now()
-		//TODO 需要测试删除是否成功 ok 是否为true
 		res, err := m.cli.Request(http.MethodDelete, "/db", nil, "application/json")
 		if err != nil {
 			fmt.Printf("[ERROR] drop all databases error: %v\n", err)
@@ -112,13 +110,15 @@ func (m *couchDB) Read(ctx context.Context, table string, key string, fields []s
 	//TODO 应该可以指定要返回哪些fields吧？行为需要与mongodb的实现保持一致
 	res, err := m.cli.Request(http.MethodGet, "/db/" + key, nil, "application/json")
 	if err != nil {
-		 panic(err)
+		fmt.Printf("[ERROR] failed to read couchbase, key = %v, err: %v\n", key, err)
+		return nil, err
 	}
 	defer closeResponseBody(res)
 	if res.StatusCode == 200 {
 		err = json.NewDecoder(res.Body).Decode(&doc)
 		if err != nil {
-			panic(err)
+			fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', key = %v, err: %v\n", key, err)
+			return nil, err
 		}
 	} else {
 		fmt.Printf("[ERROR] we may can not find document '%v', because the response status code is %v\n", key, res.StatusCode)
@@ -147,7 +147,8 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	b := bytes.NewBufferString(jsonStr)
 	res, err := m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to scanvalue couchdb, err: %v\n", err)
+		return nil, err
 	}
 	defer closeResponseBody(res)
 
@@ -155,7 +156,8 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	var response map[string]interface{}
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', err: %v\n", err)
+		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/_find', err: %v\n", err)
+		return nil, err
 	} else {
 		docsVal, ok := response["docs"].([]interface{})
 		if !ok {
@@ -211,7 +213,8 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 	//res, err :=m.cli.Request(http.MethodPost, "/db/_bulk_docs", b, "application/json;charset=UTF-8")
 	res, err :=m.cli.Request(http.MethodPut, "/db/"+key, b, "application/json;charset=UTF-8")
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to insert couchdb, err: %v\n", err)
+		return err
 	}
 	defer closeResponseBody(res)
 	if res.StatusCode != 201 && res.StatusCode != 202 {
@@ -223,6 +226,7 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', err: %v\n", err)
+		return err
 	} else if err == nil && !response.Ok {
 		fmt.Println("[ERROR] failed to insert a document")
 	}
@@ -249,18 +253,20 @@ type couchdbCreator struct {
 func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	u, err := url.Parse("http://127.0.0.1:5984/")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	// create a new client
 	client, err := couchdb.NewClient(u)
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to create a new client, err: %v\n", err)
+		return nil, err
 	}
 	var db couchdb.DatabaseService
 	_, err = client.Request(http.MethodGet, "/db/", nil, "application/json")
 	if err != nil {
 		if _, err = client.Create("db"); err != nil {
-			panic(err)
+			fmt.Printf("[ERROR] failed to create a new database, err: %v\n", err)
+			return nil, err
 		}
 		db = client.Use("db")
 	} else {
@@ -336,26 +342,26 @@ func getAllField(str string) []string {
 	return fields
 }
 
-func Post(url string, data interface{}, contentType string) (content string) {
-	jsonStr, _ := json.Marshal(data)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Add("content-type", contentType)
-	if err != nil {
-		panic(err)
-	}
-	defer req.Body.Close()
-
-	client := &http.Client{Timeout: 5 * time.Second}
-	resp, error := client.Do(req)
-	if error != nil {
-		panic(error)
-	}
-	defer resp.Body.Close()
-
-	result, _ := ioutil.ReadAll(resp.Body)
-	content = string(result)
-	return
-}
+//func Post(url string, data interface{}, contentType string) (content string) {
+//	jsonStr, _ := json.Marshal(data)
+//	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+//	req.Header.Add("content-type", contentType)
+//	if err != nil {
+//		panic(err)
+//	}
+//	defer req.Body.Close()
+//
+//	client := &http.Client{Timeout: 5 * time.Second}
+//	resp, error := client.Do(req)
+//	if error != nil {
+//		panic(error)
+//	}
+//	defer resp.Body.Close()
+//
+//	result, _ := ioutil.ReadAll(resp.Body)
+//	content = string(result)
+//	return
+//}
 
 // closeResponseBody discards the body and then closes it to enable returning it to
 // connection pool

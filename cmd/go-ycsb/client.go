@@ -44,6 +44,7 @@ func runClientCommandFunc(cmd *cobra.Command, args []string, doTransactions bool
 		}
 	})
 
+	fmt.Println(time.Now())
 	fmt.Println("***************** properties *****************")
 	for key, value := range globalProps.Map() {
 		fmt.Printf("\"%s\"=\"%s\"\n", key, value)

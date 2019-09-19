@@ -33,8 +33,7 @@ func (c *couchbaseDB) Close() error {
 	//if err != nil {
 	//	panic(err)
 	//}
-	c.database.Close()
-	return nil
+	return c.database.Close()
 }
 func (c *couchbaseDB) Delete(ctx context.Context, table string, key string) error {
 	return nil
@@ -77,15 +76,14 @@ func (c *couchbaseDB) Read(ctx context.Context, table string, key string, fields
 	var doc map[string][]byte
 	_, err := c.database.Get(key, &doc)
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to read couchbase, key = %v, err: %v\n", key, err)
+		return nil, err
 	}
 	return doc, nil
 }
 
 func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
 	// limit := int64(count)
-
-
 	var fieldstring string
 	i := 0
 	for k, v := range values {
@@ -103,7 +101,8 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	myN1qlQuery := gocb.NewN1qlQuery(myQuery)
 	rows, err := c.database.ExecuteN1qlQuery(myN1qlQuery, nil)
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to scanvalue couchbase, err: %v\n", err)
+		return nil, err
 	}
 	var res []map[string][]byte
 	var row map[string][]byte
@@ -114,8 +113,6 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	//fmt.Println(myQuery)
 	//fmt.Println(res)
 
-
-
 	return res, nil
 }
 
@@ -123,7 +120,8 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 func (c *couchbaseDB) Insert(ctx context.Context, table string, key string, values map[string][]byte) error {
 	_, err := c.database.Insert(key,  values, 0)
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to insert couchbase, key = %v, err: %v\n", key, err)
+		return err
 	}
 	return nil
 }
@@ -134,20 +132,23 @@ type couchbaseCreator struct {
 func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	cli, err := gocb.Connect("http://127.0.0.1:8091/")
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to connect db, err: %v\n", err)
+		return nil, err
 	}
 	err = cli.Authenticate(gocb.PasswordAuthenticator{
 		Username: "user",
 		Password: "password",
 	})
 	if err != nil {
-		panic(err)
+		fmt.Printf("[ERROR] failed to authenticate db, err: %v\n", err)
+		return nil, err
 	}
 
 
 	bu, err := cli.OpenBucket(dbname, "")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("[ERROR] failed to open bucket, err: %v\n", err)
+		return nil, err
 	}
 	if bu == nil {
 		mgr := cli.Manager("user", "password")
@@ -161,12 +162,14 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			Type:          0,
 		})
 		if err != nil {
-			panic(err)
+			fmt.Printf("[ERROR] failed to insert bucket, err: %v\n", err)
+			return nil, err
 		}
 		time.Sleep(5 * time.Second)
 		bu, err = cli.OpenBucket(dbname, "")
 		if err != nil {
-			panic(err)
+			fmt.Printf("[ERROR] failed to open bucket, err: %v\n", err)
+			return nil, err
 		}
 	}
 
