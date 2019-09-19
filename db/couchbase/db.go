@@ -147,9 +147,9 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 	bu, err := cli.OpenBucket(dbname, "")
 	if err != nil {
-		fmt.Printf("[ERROR] failed to open bucket, err: %v\n", err)
-		return nil, err
+		fmt.Printf("[WARN] failed to open bucket, err: %v\n", err)
 	}
+
 	if bu == nil {
 		mgr := cli.Manager("user", "password")
 		err := mgr.InsertBucket(&gocb.BucketSettings{
@@ -157,7 +157,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			IndexReplicas: false,
 			Name:          dbname,
 			Password:      "",
-			Quota:         100,
+			Quota:         p.GetInt(prop.CouchbaseMemory, prop.CouchbaseMemoryDefault),
 			Replicas:      0,
 			Type:          0,
 		})

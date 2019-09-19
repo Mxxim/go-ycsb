@@ -39,3 +39,6 @@ dropDatabase=false
 mongodb.indexs=field0,field1,field2
 couchbase.indexs=field0,field1,field2
 couchdb.indexs=field0,field1,field2
+
+# couchbase的内存使用
+couchbase_memory=16384

@@ -116,4 +116,8 @@ const (
 	DropIndexDefault = false
 	DropDatabase = "dropDatabase"
 	DropDatabaseDefault = false
+
+	// couchbase memory used
+	CouchbaseMemory = "couchbase_memory"
+	CouchbaseMemoryDefault = 10240 // 10GB
 )

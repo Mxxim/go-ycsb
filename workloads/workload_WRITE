@@ -19,5 +19,8 @@ requestdistribution=sequential
 # 如果这个值为true，则执行insert操作的时候，fieldlength的第一个byte为[0, 255]随机数字，后面的byte内容均相同；
 hasIndex=false
 
+# couchbase的内存使用
+couchbase_memory=16384
+
 
 

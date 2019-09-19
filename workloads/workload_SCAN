@@ -28,3 +28,6 @@ hasIndex=false
 # 只有当 hasIndex 为true的时候，这个配置项才生效
 mongodb.indexs=field0,field1,field2
 couchbase.indexs=field0,field1,field2
+
+# couchbase的内存使用
+couchbase_memory=16384
