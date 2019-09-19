@@ -59,66 +59,66 @@ echo start server_couchdb.sh ... && date
 ##### couchdb 1mb/op, total 1G
 echo "================ start couchdb 1M_1G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchdb 1M_1G 100 $FIELDCOUNT $SCANCOUNT 1024
+run couchdb 1M_1G 209716 $FIELDCOUNT $SCANCOUNT 1024
 echo "================ finish couchdb 1M_1G ================" && date
 sleep 30
 
 
-###### couchdb 1mb/op, total 16G
-#echo "================ start couchdb 1M_16G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 1M_16G 209716 $FIELDCOUNT $SCANCOUNT 16384
-#echo "================ finish couchdb 1M_16G ================" && date
-#sleep 30
-#
-#
-###### couchdb 1mb/op, total 256G
-#echo "================ start couchdb 1M_256G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 1M_256G 209716 $FIELDCOUNT $SCANCOUNT 262144
-#echo "================ finish couchdb 1M_256G ================" && date
-#sleep 30
-#
-###### couchdb 20kb/op, total 1G
-#echo "================ start couchdb 20kb_1G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 20kb_1G 4096 $FIELDCOUNT $SCANCOUNT 52429
-#echo "================ finish couchdb 20kb_1G ================" && date
-#sleep 30
-#
-###### couchdb 20kb/op, total 16G
-#echo "================ start couchdb 20kb_16G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 20kb_16G 4096 $FIELDCOUNT $SCANCOUNT 838861
-#echo "================ finish couchdb 20kb_16G ================" && date
-#sleep 30
-#
-###### couchdb 20kb/op, total 256G
-#echo "================ start couchdb 20kb_256G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 20kb_256G 4096 $FIELDCOUNT $SCANCOUNT 13421773
-#echo "================ finish couchdb 20kb_256G ================" && date
-#sleep 30
-#
-###### couchdb 200b/op, total 1G
-#echo "================ start couchdb 200b_1G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 200b_1G 320 $FIELDCOUNT $SCANCOUNT 671089
-#echo "================ finish couchdb 200b_1G ================" && date
-#sleep 30
-#
-###### couchdb 200b/op, total 16G
-#echo "================ start couchdb 200b_16G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run leveldb 200b_16G 320 $FIELDCOUNT $SCANCOUNT 10737418
-#echo "================ finish couchdb 200b_16G ================" && date
-#sleep 30
-#
-###### couchdb 200b/op, total 256G
-#echo "================ start couchdb 200b_256G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 200b_256G 320 $FIELDCOUNT $SCANCOUNT 171798692
-#echo "================ finish couchdb 200b_256G ================" && date
-#sleep 30
-#
-#
+##### couchdb 1mb/op, total 16G
+echo "================ start couchdb 1M_16G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 1M_16G 209716 $FIELDCOUNT $SCANCOUNT 16384
+echo "================ finish couchdb 1M_16G ================" && date
+sleep 30
+
+
+##### couchdb 1mb/op, total 256G
+echo "================ start couchdb 1M_256G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 1M_256G 209716 $FIELDCOUNT $SCANCOUNT 262144
+echo "================ finish couchdb 1M_256G ================" && date
+sleep 30
+
+##### couchdb 20kb/op, total 1G
+echo "================ start couchdb 20kb_1G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 20kb_1G 4096 $FIELDCOUNT $SCANCOUNT 52429
+echo "================ finish couchdb 20kb_1G ================" && date
+sleep 30
+
+##### couchdb 20kb/op, total 16G
+echo "================ start couchdb 20kb_16G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 20kb_16G 4096 $FIELDCOUNT $SCANCOUNT 838861
+echo "================ finish couchdb 20kb_16G ================" && date
+sleep 30
+
+##### couchdb 20kb/op, total 256G
+echo "================ start couchdb 20kb_256G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 20kb_256G 4096 $FIELDCOUNT $SCANCOUNT 13421773
+echo "================ finish couchdb 20kb_256G ================" && date
+sleep 30
+
+##### couchdb 200b/op, total 1G
+echo "================ start couchdb 200b_1G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 200b_1G 320 $FIELDCOUNT $SCANCOUNT 671089
+echo "================ finish couchdb 200b_1G ================" && date
+sleep 30
+
+##### couchdb 200b/op, total 16G
+echo "================ start couchdb 200b_16G ================" && date
+cd ${TEST_TOOL_PATH}
+run leveldb 200b_16G 320 $FIELDCOUNT $SCANCOUNT 10737418
+echo "================ finish couchdb 200b_16G ================" && date
+sleep 30
+
+##### couchdb 200b/op, total 256G
+echo "================ start couchdb 200b_256G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 200b_256G 320 $FIELDCOUNT $SCANCOUNT 171798692
+echo "================ finish couchdb 200b_256G ================" && date
+sleep 30
+
+
