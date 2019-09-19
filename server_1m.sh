@@ -8,7 +8,7 @@ FIELDCOUNT=5
 
 # system type
 _SYSTYPE="MAC"
-LEVELDB_PATH="data/leveldb"
+LEVELDB_PATH="l"
 
 # set environment
 f_set_env(){
