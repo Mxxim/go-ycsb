@@ -208,3 +208,5 @@ func getAllField(str string) []string {
 	fields = strings.Split(val, ",")
 	return fields
 }
+
+

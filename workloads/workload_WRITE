@@ -20,7 +20,7 @@ requestdistribution=sequential
 hasIndex=false
 
 # couchbase的内存使用
-couchbase_memory=10240
+couchbase_memory=8784
 
 
 
