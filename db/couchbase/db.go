@@ -135,6 +135,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		fmt.Printf("[ERROR] failed to connect db, err: %v\n", err)
 		return nil, err
 	}
+
 	err = cli.Authenticate(gocb.PasswordAuthenticator{
 		Username: "user",
 		Password: "password",
@@ -143,6 +144,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		fmt.Printf("[ERROR] failed to authenticate db, err: %v\n", err)
 		return nil, err
 	}
+
 
 
 	bu, err := cli.OpenBucket(dbname, "")
@@ -187,7 +189,11 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			fmt.Println("create index ....")
 			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
 			start := time.Now()
-			_ = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
+			err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
+			if err != nil {
+				fmt.Printf("create index error, err: %v\n", err)
+				return nil, nil
+			}
 			cou.hasIndex = hasIndex
 			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 		}

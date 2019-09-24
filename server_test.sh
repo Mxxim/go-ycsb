@@ -3,7 +3,7 @@
 TEST_TOOL_PATH=/home/zhengbc/go-ycsb/
 #TEST_TOOL_PATH=/Users/sammy/Workspace/go-ycsb/
 SCANCOUNT=2000
-FIELDLENGTH=209716
+FIELDLENGTH=20
 FIELDCOUNT=5
 
 # system type
@@ -84,9 +84,9 @@ run() {
         echo "READ $storage ($recordName) ..."
         ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
-        # scanvalue only with index
-#        echo "SCANVALUE $storage ($recordName) with index..."
-#        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=true
+         scanvalue only with index
+        echo "SCANVALUE $storage ($recordName) with index..."
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=false -p dropDatabase=false
     fi
 }
 
@@ -104,7 +104,7 @@ echo start server_1m.sh ... && date
 #### couchbase 1mb/op, total 1G
 echo "================ start couchbase 1M_1G ================" && date
  cd ${TEST_TOOL_PATH}
-run couchbase 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
+run couchbase 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 200 100 100
 echo "================ finish couchbase 1M_1G ================" && date
 sleep 30
 

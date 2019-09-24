@@ -2,7 +2,7 @@
 
 TEST_TOOL_PATH=/home/zhengbc/go-ycsb/
 #TEST_TOOL_PATH=/Users/sammy/Workspace/go-ycsb/
-SCANCOUNT=2000
+READCOUNT=1024
 FIELDLENGTH=209716
 FIELDCOUNT=5
 
@@ -167,54 +167,54 @@ echo start server_1m.sh ... && date
 
 
 #### couchbase 1mb/op, total 1G
-echo "================ start couchbase 1M_1G ================" && date
- cd ${TEST_TOOL_PATH}
-run couchbase 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
-echo "================ finish couchbase 1M_1G ================" && date
-sleep 30
-
-
-### leveldb 1mb/op, total 1G
-echo "================ start leveldb 1M_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run leveldb 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
-echo "================ finish leveldb 1M_1G ================" && date
-sleep 30
-
-##### mongodb 1mb/op, total 1G
-echo "================ start mongodb 1M_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
-echo "================ finish mongodb 1M_1G ================" && date
-sleep 30
-
-#### couchbase 1mb/op, total 16G
-echo "================ start couchbase 1M_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchbase 1M_16G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 16384 8192 8192
-echo "================ finish couchbase 1M_16G ================" && date
-sleep 30
-
-#### leveldb 1mb/op, total 16G
-echo "================ start leveldb 1M_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run leveldb 1M_16G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 16384 8192 8192
-echo "================ finish leveldb 1M_16G ================" && date
-sleep 30
-
-##### mongodb 1mb/op, total 16G
-echo "================ start mongodb 1M_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_16G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 16384 8192 8192
-echo "================ finish mongodb 1M_16G ================" && date
-sleep 30
+#echo "================ start couchbase 1M_1G ================" && date
+# cd ${TEST_TOOL_PATH}
+#run couchbase 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
+#echo "================ finish couchbase 1M_1G ================" && date
+#sleep 30
+#
+#
+#### leveldb 1mb/op, total 1G
+#echo "================ start leveldb 1M_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run leveldb 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
+#echo "================ finish leveldb 1M_1G ================" && date
+#sleep 30
+#
+###### mongodb 1mb/op, total 1G
+#echo "================ start mongodb 1M_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_1G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 1024 512 512
+#echo "================ finish mongodb 1M_1G ================" && date
+#sleep 30
+#
+##### couchbase 1mb/op, total 16G
+#echo "================ start couchbase 1M_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 1M_16G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 16384 8192 8192
+#echo "================ finish couchbase 1M_16G ================" && date
+#sleep 30
+#
+##### leveldb 1mb/op, total 16G
+#echo "================ start leveldb 1M_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run leveldb 1M_16G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 16384 8192 8192
+#echo "================ finish leveldb 1M_16G ================" && date
+#sleep 30
+#
+###### mongodb 1mb/op, total 16G
+#echo "================ start mongodb 1M_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_16G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 16384 8192 8192
+#echo "================ finish mongodb 1M_16G ================" && date
+#sleep 30
 
 ##### couchbase 1mb/op, total 256G
-echo "================ start couchbase 1M_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchbase 1M_256G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 262144 131072 131072
-echo "================ finish couchbase 1M_256G ================" && date
-sleep 30
+#echo "================ start couchbase 1M_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 1M_256G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 262144 131072 131072
+#echo "================ finish couchbase 1M_256G ================" && date
+#sleep 30
 
 #### leveldb 1mb/op, total 256G
 echo "================ start leveldb 1M_256G ================" && date
