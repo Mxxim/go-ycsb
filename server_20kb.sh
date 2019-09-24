@@ -71,7 +71,7 @@ run() {
 
         # write only
         echo "WRITE $storage ($recordName)..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${write_count} -p leveldb.path=$LEVELDB_PATH
+        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count} -p leveldb.path=$LEVELDB_PATH
 
         du -sh $LEVELDB_PATH
 
@@ -103,7 +103,7 @@ run() {
 
         # write only
         echo "WRITE $storage ($recordName)..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${write_count}
+        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
 
         du -sh /opt/mongodb/data
 
@@ -113,7 +113,7 @@ run() {
 
         # scan only
         echo "SCAN $storage ($recordName) ..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT}
+        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
         # scanvalue only with index
         echo "SCANVALUE $storage ($recordName) with index..."
@@ -138,7 +138,7 @@ run() {
 
         # write only
         echo "WRITE $storage ($recordName)..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${write_count}
+        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
 
         du -sh /opt/couchbasedb
 
@@ -215,14 +215,14 @@ echo start server_20kb.sh ... && date
 ##### leveldb 20kb/op, total 256G
 echo "================ start leveldb 20kb_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run leveldb 20kb_256G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 13421773 6710886 6710887
+run leveldb 20kb_256G $FIELDLENGTH $FIELDCOUNT 5 52429 6710886 6710887
 echo "================ finish leveldb 20kb_256G ================" && date
 sleep 30
 
 ##### mongodb 20kb/op, total 256G
 echo "================ start mongodb 20kb_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run mongodb 20kb_256G $FIELDLENGTH $FIELDCOUNT $SCANCOUNT 13421773 6710886 6710887
+run mongodb 20kb_256G $FIELDLENGTH $FIELDCOUNT 5 52429 6710886 6710887
 echo "================ finish mongodb 20kb_256G ================" && date
 sleep 30
 

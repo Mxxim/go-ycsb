@@ -33,9 +33,13 @@ run() {
     echo "LOAD $storage ($recordName) ..."
     ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
 
+    du -sh /opt/couchdb/data/
+
     # write only
     echo "WRITE $storage ($recordName) ..."
     ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
+
+    du -sh /opt/couchdb/data/
 
     # read only
     echo "READ $storage ($recordName) ..."

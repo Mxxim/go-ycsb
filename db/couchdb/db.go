@@ -197,7 +197,6 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 			fieldstring += ","
 		}
 	}
-	key = "\"" + key + "\""
 	var jsonStr = "{" + fieldstring + "}"
 	//var jsonStr = "{" +
 	//					"\"docs\":[" +
