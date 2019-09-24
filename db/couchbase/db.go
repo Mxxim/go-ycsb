@@ -189,7 +189,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			fmt.Println("create index ....")
 			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
 			start := time.Now()
-			err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
+			err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, true)
 			if err != nil {
 				fmt.Printf("create index error, err: %v\n", err)
 				return nil, nil
