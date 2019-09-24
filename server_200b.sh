@@ -77,8 +77,8 @@ run() {
         du -sh $LEVELDB_PATH
 
         # scan only
-        echo "SCAN $storage ($recordName) ..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=$LEVELDB_PATH
+#        echo "SCAN $storage ($recordName) ..."
+#        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p leveldb.path=$LEVELDB_PATH
 
         # read only
         echo "READ $storage ($recordName) ..."
@@ -113,8 +113,8 @@ run() {
         ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
         # scan only
-        echo "SCAN $storage ($recordName) ..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+#        echo "SCAN $storage ($recordName) ..."
+#        ./bin/go-ycsb run ${storage} -P workloads/workload_SCAN > logs/${storage}_${recordName}_S.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
         # scanvalue only with index
         echo "SCANVALUE $storage ($recordName) with index..."
