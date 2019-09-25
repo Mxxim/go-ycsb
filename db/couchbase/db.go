@@ -3,6 +3,7 @@ package couchbase
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/couchbase/gocb"
 	"github.com/magiconair/properties"
@@ -195,17 +196,18 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 				fmt.Printf("create index error, err: %v\n", err)
 				// return nil, nil
 			}
-			building, err := mgr.BuildDeferredIndexes()
-			fmt.Println("building:", building)
-			indexs, err := mgr.GetIndexes()
+			err = WatchBuildingIndexes(mgr, 3600 *time.Second)
+			//building, err := mgr.BuildDeferredIndexes()
+			//fmt.Println("building:", building)
+			//indexs, err := mgr.GetIndexes()
+			//if err != nil {
+			//	fmt.Println("get indexs err:", err)
+			//}
+			//fmt.Printf("indexs: %+v\n", indexs)
+			//err = mgr.WatchIndexes(building, false, 3600 *time.Second)
 			if err != nil {
-				fmt.Println("get indexs err:", err)
-			}
-			fmt.Printf("indexs: %+v\n", indexs)
-			err = mgr.WatchIndexes(building, false, 3600 *time.Second)
-			if err != nil {
-				fmt.Printf("watch index out of time ??, err: %v\n", err)
-				// return nil, nil
+				fmt.Printf("watch index out of time, err: %v\n", err)
+				return nil, nil
 			}
 			cou.hasIndex = hasIndex
 			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
@@ -227,5 +229,33 @@ func getAllField(str string) []string {
 	fields = strings.Split(val, ",")
 	return fields
 }
+func WatchBuildingIndexes(bm *gocb.BucketManager, timeout time.Duration) error {
 
+	curInterval := 50 * time.Millisecond
+	timeoutTime := time.Now().Add(timeout)
+	for {
+		indexes, err := bm.GetIndexes()
+		if err != nil {
+			return err
+		}
+
+		if indexes[0].Name == index_name && indexes[0].State == "online" {
+			break
+		}
+
+		curInterval += 500 * time.Millisecond
+		if curInterval > 1000 {
+			curInterval = 1000
+		}
+
+		if time.Now().Add(curInterval).After(timeoutTime) {
+			return errors.New("create index time out")
+		}
+
+		// Wait till our next poll interval
+		time.Sleep(curInterval)
+	}
+
+	return nil
+}
 
