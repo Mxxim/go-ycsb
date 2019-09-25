@@ -70,7 +70,7 @@ echo start server_couchdb.sh ... && date
 ##### couchdb 1mb/op, total 1G
 echo "================ start couchdb 1M_1G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 1M_1G 20 $FIELDCOUNT 100 1024 512 512
+run couchbase 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
 echo "================ finish couchdb 1M_1G ================" && date
 sleep 30
 
