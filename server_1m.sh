@@ -98,21 +98,21 @@ run() {
 
     if [ "$storage" = "mongodb" ];then
 
-        # load data
-        echo "LOAD $storage ($recordName) ..."
-        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
-
-        du -sh /opt/mongodb/data
-
-        # write only
-        echo "WRITE $storage ($recordName)..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
-
-        du -sh /opt/mongodb/data
-
-        # read only
-        echo "READ $storage ($recordName) ..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+#        # load data
+#        echo "LOAD $storage ($recordName) ..."
+#        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
+#
+#        du -sh /opt/mongodb/data
+#
+#        # write only
+#        echo "WRITE $storage ($recordName)..."
+#        ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
+#
+#        du -sh /opt/mongodb/data
+#
+#        # read only
+#        echo "READ $storage ($recordName) ..."
+#        ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
         # scan only
 #        echo "SCAN $storage ($recordName) ..."
@@ -217,11 +217,11 @@ echo start server_1m.sh ... && date
 #sleep 30
 
 #### leveldb 1mb/op, total 256G
-echo "================ start leveldb 1M_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run leveldb 1M_256G $FIELDLENGTH $FIELDCOUNT 5 1024 131072 131072
-echo "================ finish leveldb 1M_256G ================" && date
-sleep 30
+#echo "================ start leveldb 1M_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run leveldb 1M_256G $FIELDLENGTH $FIELDCOUNT 5 1024 131072 131072
+#echo "================ finish leveldb 1M_256G ================" && date
+#sleep 30
 
 ##### mongodb 1mb/op, total 256G
 echo "================ start mongodb 1M_256G ================" && date
