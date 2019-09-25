@@ -102,6 +102,7 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	rows, err := c.database.ExecuteN1qlQuery(myN1qlQuery, nil)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to scanvalue couchbase, err: %v\n", err)
+
 		return nil, err
 	}
 	var res []map[string][]byte
