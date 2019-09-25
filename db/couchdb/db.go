@@ -163,6 +163,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 		if !ok {
 			fmt.Println("[ERROR] failed to convert 'docs' type from 'PUT /{dbname}/{docId}' response")
 		} else if ok && len(docsVal) == 0 {
+			fmt.Println(jsonStr)
 			fmt.Println("[ERROR] we have not get result from db, the method ScanValue() has exception!!!")
 		} else {
 			for _, v := range docsVal {
@@ -206,7 +207,7 @@ func (m *couchDB) Insert(ctx context.Context, table string, key string, values m
 	//	"]}"
 	// fmt.Println(jsonStr)
 	//jsonStr := "{\"docs\":[{\"_id\":\"user1000\",\"field0\":\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU\",\"field1\":\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU\",\"field2\":\"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTU\"}]}"
-
+	// fmt.Println(jsonStr)
 	b := bytes.NewBufferString(jsonStr)
 
 	//res, err :=m.cli.Request(http.MethodPost, "/db/_bulk_docs", b, "application/json;charset=UTF-8")
