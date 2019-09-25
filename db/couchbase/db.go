@@ -102,7 +102,7 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	rows, err := c.database.ExecuteN1qlQuery(myN1qlQuery, nil)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to scanvalue couchbase, err: %v\n", err)
-
+		fmt.Printf("Here is the query: %v\n", myQuery)
 		return nil, err
 	}
 	var res []map[string][]byte
@@ -190,7 +190,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			fmt.Println("create index ....")
 			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
 			start := time.Now()
-			err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, true)
+			err = bu.Manager("", "").CreateIndex(index_name, cou.indexs, true, false)
 			if err != nil {
 				fmt.Printf("create index error, err: %v\n", err)
 				// return nil, nil
