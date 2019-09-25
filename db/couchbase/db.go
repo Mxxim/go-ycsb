@@ -238,6 +238,7 @@ func WatchBuildingIndexes(bm *gocb.BucketManager, timeout time.Duration) error {
 	timeoutTime := time.Now().Add(timeout)
 	for {
 		indexes, err := bm.GetIndexes()
+		fmt.Printf("indexes: %+v\n", indexes)
 		if err != nil {
 			return err
 		}
@@ -246,7 +247,7 @@ func WatchBuildingIndexes(bm *gocb.BucketManager, timeout time.Duration) error {
 			break
 		}
 
-		curInterval += 500 * time.Millisecond
+		curInterval += 5 * time.Second
 		if curInterval > 1000 {
 			curInterval = 1000
 		}
