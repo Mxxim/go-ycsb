@@ -99,9 +99,13 @@ run() {
 
     if [ "$storage" = "mongodb" ];then
 
-        # load data
-        echo "LOAD $storage ($recordName) ..."
-        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
+        if [ ${load_count} != 6710886 ];then
+          echo "LOAD $storage ($recordName) ..."
+          ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
+        else
+          echo "LOAD $storage ($recordName) ..."
+          ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count} -p mongodb.indexs=field0,field1,field2,field3,field4
+        fi
 
         du -sh /opt/mongodb/data
 
@@ -125,9 +129,12 @@ run() {
         echo "SCANVALUE $storage ($recordName) with index..."
         ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=true -p dropDatabase=false
 
-        # scanvalue only without index
-        echo "SCANVALUE $storage ($recordName) without index..."
-        ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=true
+        if [ ${load_count} != 6710886 ];then
+          # scanvalue only without index
+          echo "SCANVALUE $storage ($recordName) without index..."
+          ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=true
+        fi
+
     fi
 
     if [ "$storage" = "couchbase" ];then

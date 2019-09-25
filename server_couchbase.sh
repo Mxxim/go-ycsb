@@ -36,8 +36,13 @@ run() {
         curl -u user:password -v -X POST http://127.0.0.1:8091/settings/web -d password=password -d username=user -d port=8091
 
         # load data
-        echo "LOAD $storage ($recordName)..."
-        ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
+        if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
+          echo "LOAD $storage ($recordName) ..."
+          ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
+        else
+          echo "LOAD $storage ($recordName) ..."
+          ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count} -p couchbase.indexs=field0,field1,field2,field3,field4
+        fi
 
         du -sh /opt/couchbasedb/data/
 
@@ -85,7 +90,7 @@ sleep 30
 ##### couchdb 200b/op, total 256G
 echo "================ start couchdb 200b_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 200b_256G 320 $FIELDCOUNT 5 671089 85899346 85899346
+run couchbase 200b_256G 320 $FIELDCOUNT 5 671089 85894846 85894846
 echo "================ finish couchdb 200b_256G ================" && date
 sleep 30
 

@@ -49,10 +49,11 @@ run() {
     echo "SCANVALUE $storage ($recordName) with index..."
     ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=true -p dropIndex=false -p dropDatabase=false
 
-    # scanvalue only without index
-    echo "SCANVALUE $storage ($recordName) without index..."
-    ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=true
-
+    if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
+      # scanvalue only without index
+      echo "SCANVALUE $storage ($recordName) without index..."
+      ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p hasIndex=false -p dropIndex=false -p dropDatabase=true
+    fi
 
 }
 
@@ -127,7 +128,7 @@ sleep 30
 ##### couchdb 200b/op, total 256G
 echo "================ start couchdb 200b_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchdb 200b_256G 320 $FIELDCOUNT 5 671089 85899346 85899346
+run couchdb 200b_256G 320 $FIELDCOUNT 5 671089 85894846 85894846
 echo "================ finish couchdb 200b_256G ================" && date
 sleep 30
 
