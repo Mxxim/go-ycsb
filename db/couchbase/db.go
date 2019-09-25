@@ -196,6 +196,9 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 				fmt.Printf("create index error, err: %v\n", err)
 				// return nil, nil
 			}
+			indexs, err := mgr.GetIndexes()
+			fmt.Printf("indexs: %+v\n", indexs)
+			fmt.Println("start to watch")
 			err = WatchBuildingIndexes(mgr, 3600 *time.Second)
 			//building, err := mgr.BuildDeferredIndexes()
 			//fmt.Println("building:", building)
