@@ -17,6 +17,7 @@ const (
 	dbname = "db14"
 	couchbaseIndexs	 = "couchbase.indexs"
 	index_name = "test_index"
+	GlobalTimeout = 3600 *time.Second
 )
 
 type couchbaseDB struct {
@@ -59,6 +60,7 @@ func (c *couchbaseDB) CleanupThread(ctx context.Context) {
 		if err != nil {
 			fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
 		}
+
 		fmt.Printf("drop all indexs time used: %v\n", time.Now().Sub(start))
 	}
 
@@ -68,6 +70,10 @@ func (c *couchbaseDB) CleanupThread(ctx context.Context) {
 		err := mgr.RemoveBucket(dbname)
 		if err != nil {
 			fmt.Printf("[ERROR] drop all database error: %v\n", err)
+		}
+		err = WatchRemoveBucket(mgr, GlobalTimeout)
+		if err != nil {
+			fmt.Printf("[ERROR] watch remove bucket error: %v\n", err)
 		}
 		fmt.Printf("drop all databases time used: %v\n", time.Now().Sub(start))
 	}
@@ -100,6 +106,7 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 
 	myQuery := "SELECT * FROM `" + dbname + "` WHERE " + fieldstring
 	myN1qlQuery := gocb.NewN1qlQuery(myQuery)
+	myN1qlQuery.Timeout(GlobalTimeout)
 	rows, err := c.database.ExecuteN1qlQuery(myN1qlQuery, nil)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to scanvalue couchbase, err: %v\n", err)
@@ -199,7 +206,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			indexs, err := mgr.GetIndexes()
 			fmt.Printf("indexs: %+v\n", indexs)
 			fmt.Println("start to watch")
-			err = WatchBuildingIndexes(mgr, 3600 *time.Second)
+			err = WatchBuildingIndexes(mgr, GlobalTimeout)
 			//building, err := mgr.BuildDeferredIndexes()
 			//fmt.Println("building:", building)
 			//indexs, err := mgr.GetIndexes()
@@ -238,12 +245,42 @@ func WatchBuildingIndexes(bm *gocb.BucketManager, timeout time.Duration) error {
 	timeoutTime := time.Now().Add(timeout)
 	for {
 		indexes, err := bm.GetIndexes()
-		fmt.Printf("indexes: %+v\n", indexes)
+		// fmt.Printf("indexes: %+v\n", indexes)
 		if err != nil {
 			return err
 		}
 
 		if indexes[0].Name == index_name && indexes[0].State == "online" {
+			break
+		}
+
+		curInterval += 5 * time.Second
+		if curInterval > 1000 {
+			curInterval = 1000
+		}
+
+		if time.Now().Add(curInterval).After(timeoutTime) {
+			return errors.New("create index time out")
+		}
+
+		// Wait till our next poll interval
+		time.Sleep(curInterval)
+	}
+
+	return nil
+}
+
+func WatchRemoveBucket(mgr *gocb.ClusterManager, timeout time.Duration) error {
+	curInterval := 50 * time.Millisecond
+	timeoutTime := time.Now().Add(timeout)
+	for {
+		bs, err := mgr.GetBuckets()
+		// fmt.Printf("indexes: %+v\n", indexes)
+		if err != nil {
+			return err
+		}
+
+		if len(bs) == 0 {
 			break
 		}
 
