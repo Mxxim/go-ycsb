@@ -13,6 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
+	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -40,6 +42,9 @@ type mongoDB struct {
 	indexs             []string
 	shouldDropIndex    bool
 	shouldDropDatabase bool
+
+	keyCount  int64
+	fieldCount int64
 }
 
 func (m *mongoDB) Close() error {
@@ -154,18 +159,29 @@ func (m *mongoDB) Delete(ctx context.Context, table string, key string) error {
 }
 
 func (m *mongoDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
-	//fmt.Printf("=== mongodb scanvalue, count = %v, len(values) = %v\n", count, len(values))
+	// 1. 随机获取某个主键对应的document
 	projection := map[string]bool{"_id": false}
-	limit := int64(count)
-	opt := &options.FindOptions{Projection: projection, Sort: bson.M{"_id": 1}, Limit: &limit}
 
-	bsonm := make(bson.M)
-	for k, v := range values {
-		//fmt.Println(k, v)
-		bsonm[k] = v
+	ranKey := m.getRandomKey()
+	opt := &options.FindOneOptions{Projection: projection}
+	var doc map[string][]byte
+	if err := m.coll.FindOne(ctx, bson.M{"_id": ranKey}, opt).Decode(&doc); err != nil {
+		return nil, fmt.Errorf("Read error: %s", err.Error())
 	}
 
-	cursor, err := m.coll.Find(ctx, bsonm, opt)
+	// 2. 随机获取这个document里某个字段的值
+	ranFieldName := m.getRandomField()
+	val := doc[ranFieldName]
+
+	start := time.Now()
+	projection2 := map[string]bool{"_id": false}
+	limit := int64(count)
+	opt2 := &options.FindOptions{Projection: projection2, Sort: bson.M{"_id": 1}, Limit: &limit}
+
+	bsonm := make(bson.M)
+	bsonm[ranFieldName] = val
+
+	cursor, err := m.coll.Find(ctx, bsonm, opt2)
 	if err != nil {
 		return nil, fmt.Errorf("Scan error: %s", err.Error())
 	}
@@ -179,7 +195,13 @@ func (m *mongoDB) ScanValue(ctx context.Context, table string, count int, values
 		//fmt.Println(doc)
 		docs = append(docs, doc)
 	}
+
+	if len(docs) == 0 {
+		fmt.Printf("[WARN] not found any document, ranKey = %v, ranField = %v\n", ranKey, ranFieldName)
+	}
+	fmt.Printf("==== scan value time used %v\n", time.Now().Sub(start))
 	return docs, nil
+
 }
 
 type mongodbCreator struct {
@@ -235,6 +257,8 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		coll:               coll,
 		shouldDropIndex:    p.GetBool(prop.DropIndex, prop.DropIndexDefault),
 		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
+		keyCount:           p.GetInt64(prop.RecordCount, prop.RecordCountDefault) + p.GetInt64(prop.OperationCount, int64(0)),
+		fieldCount:         p.GetInt64(prop.FieldCount, 5),
 	}
 
 	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)
@@ -279,4 +303,14 @@ func getAllField(str string) []string {
 	val := strings.TrimSpace(str)
 	fields = strings.Split(val, ",")
 	return fields
+}
+
+func (m *mongoDB) getRandomKey() string {
+	ran := rand.Int63n(m.keyCount)
+	return "user"+strconv.FormatInt(ran, 10)
+}
+
+func (m *mongoDB) getRandomField() string {
+	ran := rand.Int63n(m.fieldCount)
+	return "field"+strconv.FormatInt(ran, 10)
 }
