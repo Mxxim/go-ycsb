@@ -129,7 +129,6 @@ func (c *couchbaseDB) Insert(ctx context.Context, table string, key string, valu
 	_, err := c.database.Insert(key,  values, 0)
 	if err != nil {
 		fmt.Printf("[ERROR] failed to insert couchbase, key = %v, err: %v\n", key, err)
-		c.database.SetOperationTimeout(GlobalTimeout)
 		return err
 	}
 	return nil
@@ -183,6 +182,8 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			return nil, err
 		}
 	}
+
+	bu.SetOperationTimeout(GlobalTimeout)
 
 	cou := &couchbaseDB{
 		cli: cli,
