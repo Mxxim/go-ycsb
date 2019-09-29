@@ -35,13 +35,13 @@ run() {
 
         curl -u user:password -v -X POST http://127.0.0.1:8091/settings/web -d password=password -d username=user -d port=8091
 
-        # load data
-        if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
-          echo "LOAD $storage ($recordName) ..."
-          ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
-        else
+        if [ ${load_count} == 85894846 -o ${load_count} == 6710886 -o ${load_count} == 131072 ];then
+          # load data, 256G
           echo "LOAD $storage ($recordName) ..."
           ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count} -p couchbase.indexs=field0,field1,field2,field3,field4
+        else
+          echo "LOAD $storage ($recordName) ..."
+          ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
         fi
 
         du -sh /opt/couchbasedb/data/

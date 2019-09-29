@@ -206,6 +206,12 @@ func (m *mongoDB) ScanValue(ctx context.Context, table string, count int, values
 type mongodbCreator struct {
 }
 
+type index struct {
+	Key  map[string]int
+	NS   string
+	Name string
+}
+
 func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	uri := p.GetString(mongodbUri, mongodbUriDefault)
 	nss := p.GetString(mongodbNamespace, mongodbNamespaceDefault)
@@ -285,6 +291,21 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
+
+	// 输出目前db里已经建立的索引有哪些
+	indexView := coll.Indexes()
+	cursor, err := indexView.List(context.Background())
+	fmt.Printf("mongodb estalished indexs: ")
+	for cursor.Next(context.Background()) {
+		var idx index
+		err := cursor.Decode(&idx)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf(idx.Name+" | ")
+		fmt.Printf(idx.Name)
+	}
+	fmt.Println()
 	return m, nil
 }
 

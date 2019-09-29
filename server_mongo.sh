@@ -129,7 +129,7 @@ run mongodb 1M_16G 209716 $FIELDCOUNT 50 1024 8192 8192
 echo "================ finish mongodb 1M_16G ================" && date
 sleep 30
 
-#### leveldb 1mb/op, total 256G
+#### mongodb 1mb/op, total 256G
 echo "================ start mongodb 1M_256G ================" && date
 cd ${TEST_TOOL_PATH}
 run mongodb 1M_256G 209716 $FIELDCOUNT 50 1024 131072 131072
