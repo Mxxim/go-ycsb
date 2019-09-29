@@ -302,8 +302,7 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		fmt.Printf(idx.Name+" | ")
-		fmt.Printf(idx.Name)
+		fmt.Printf(idx.Name+" , ")
 	}
 	fmt.Println()
 	return m, nil

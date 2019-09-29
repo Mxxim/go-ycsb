@@ -44,25 +44,27 @@ run() {
           ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
         fi
 
+        sleep 30
         du -sh /opt/couchbasedb/data/
 
         # write only
         echo "WRITE $storage ($recordName)..."
         ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
 
+        sleep 30
         du -sh /opt/couchbasedb/data/
 
         # read only
         echo "READ $storage ($recordName) ..."
         ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
-        # scanvalue only with index
-        if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
-          echo "SCANVALUE $storage ($recordName) with index..."
-          ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=true -p couchbase.indexs=field0,field1,field2,field3,field4
-        else
+        if [ ${load_count} == 85894846 -o ${load_count} == 6710886 -o ${load_count} == 131072 ];then
+          # scanvalue only with index，256G
           echo "SCANVALUE $storage ($recordName) with index..."
           ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=true
+        else
+          echo "SCANVALUE $storage ($recordName) with index..."
+          ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=true -p couchbase.indexs=field0,field1,field2,field3,field4
         fi
     fi
 }
@@ -81,42 +83,42 @@ echo start server_couchbase.sh ... && date
 ##### couchbase 200b/op, total 1G
 echo "================ start couchbase 200b_1G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 200b_1G 320 $FIELDCOUNT 100 671089 335544 335545
+run couchbase 200b_1G 320 $FIELDCOUNT 100 1024 335544 335545
 echo "================ finish couchbase 200b_1G ================" && date
 sleep 30
 
 ##### couchbase 200b/op, total 16G
 echo "================ start couchbase 200b_16G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 200b_16G 320 $FIELDCOUNT 50 671089 5368709 5368709
+run couchbase 200b_16G 320 $FIELDCOUNT 50 1024 5368709 5368709
 echo "================ finish couchbase 200b_16G ================" && date
 sleep 30
 
 ##### couchbase 200b/op, total 256G
 echo "================ start couchbase 200b_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 200b_256G 320 $FIELDCOUNT 5 671089 85894846 85894846
+run couchbase 200b_256G 320 $FIELDCOUNT 50 1024 85894846 85894846
 echo "================ finish couchbase 200b_256G ================" && date
 sleep 30
 
 ##### couchbase 20kb/op, total 1G
 echo "================ start couchbase 20kb_1G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 20kb_1G 4096 $FIELDCOUNT 100 52429 26214 26215
+run couchbase 20kb_1G 4096 $FIELDCOUNT 100 1024 26214 26215
 echo "================ finish couchbase 20kb_1G ================" && date
 sleep 30
 
 ##### couchbase 20kb/op, total 16G
 echo "================ start couchbase 20kb_16G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 20kb_16G 4096 $FIELDCOUNT 50 52429 419430 419431
+run couchbase 20kb_16G 4096 $FIELDCOUNT 50 1024 419430 419431
 echo "================ finish couchbase 20kb_16G ================" && date
 sleep 30
 
 ##### couchbase 20kb/op, total 256G
 echo "================ start couchbase 20kb_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 20kb_256G 4096 $FIELDCOUNT 5 52429 6710886 6710887
+run couchbase 20kb_256G 4096 $FIELDCOUNT 50 1024 6710886 6710887
 echo "================ finish couchbase 20kb_256G ================" && date
 sleep 30
 
@@ -140,6 +142,6 @@ sleep 30
 ##### couchbase 1mb/op, total 256G
 echo "================ start couchbase 1M_256G ================" && date
 cd ${TEST_TOOL_PATH}
-run couchbase 1M_256G 209716 $FIELDCOUNT 5 1024 131072 131072
+run couchbase 1M_256G 209716 $FIELDCOUNT 50 1024 131072 131072
 echo "================ finish couchbase 1M_256G ================" && date
 sleep 30
