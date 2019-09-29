@@ -115,47 +115,47 @@ echo start server_20kb.sh ... && date
 # 5 - sanvalue次数
 # 6 - 插入文档个数以及read和scan的次数
 
-##### mongodb 1mb/op, total 1G
-echo "================ start mongodb 1M_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
-echo "================ finish mongodb 1M_1G ================" && date
-sleep 30
-
-##### mongodb 1mb/op, total 16G
-echo "================ start mongodb 1M_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_16G 209716 $FIELDCOUNT 50 1024 8192 8192
-echo "================ finish mongodb 1M_16G ================" && date
-sleep 30
-
-#### leveldb 1mb/op, total 256G
-echo "================ start leveldb 1M_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run leveldb 1M_256G 209716 $FIELDCOUNT 50 1024 131072 131072
-echo "================ finish leveldb 1M_256G ================" && date
-sleep 30
-
-##### mongodb 20kb/op, total 1G
-echo "================ start mongodb 20kb_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 20kb_1G 4096 $FIELDCOUNT 100 1024 26214 26215
-echo "================ finish mongodb 20kb_1G ================" && date
-sleep 30
-
-##### mongodb 20kb/op, total 16G
-echo "================ start mongodb 20kb_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 20kb_16G 4096 $FIELDCOUNT 50 1024 419430 419431
-echo "================ finish mongodb 20kb_16G ================" && date
-sleep 30
-
-##### mongodb 20kb/op, total 256G
-echo "================ start mongodb 20kb_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 20kb_256G 4096 $FIELDCOUNT 50 1024 6710886 6710887
-echo "================ finish mongodb 20kb_256G ================" && date
-sleep 30
+###### mongodb 1mb/op, total 1G
+#echo "================ start mongodb 1M_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
+#echo "================ finish mongodb 1M_1G ================" && date
+#sleep 30
+#
+###### mongodb 1mb/op, total 16G
+#echo "================ start mongodb 1M_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_16G 209716 $FIELDCOUNT 50 1024 8192 8192
+#echo "================ finish mongodb 1M_16G ================" && date
+#sleep 30
+#
+##### leveldb 1mb/op, total 256G
+#echo "================ start leveldb 1M_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_256G 209716 $FIELDCOUNT 50 1024 131072 131072
+#echo "================ finish leveldb 1M_256G ================" && date
+#sleep 30
+#
+###### mongodb 20kb/op, total 1G
+#echo "================ start mongodb 20kb_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 20kb_1G 4096 $FIELDCOUNT 100 1024 26214 26215
+#echo "================ finish mongodb 20kb_1G ================" && date
+#sleep 30
+#
+###### mongodb 20kb/op, total 16G
+#echo "================ start mongodb 20kb_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 20kb_16G 4096 $FIELDCOUNT 50 1024 419430 419431
+#echo "================ finish mongodb 20kb_16G ================" && date
+#sleep 30
+#
+###### mongodb 20kb/op, total 256G
+#echo "================ start mongodb 20kb_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 20kb_256G 4096 $FIELDCOUNT 50 1024 6710886 6710887
+#echo "================ finish mongodb 20kb_256G ================" && date
+#sleep 30
 
 ##### mongodb 200b/op, total 1G
 echo "================ start mongodb 200b_1G ================" && date
