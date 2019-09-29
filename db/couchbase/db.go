@@ -23,7 +23,6 @@ type couchbaseDB struct {
 	cli *gocb.Cluster
 	database *gocb.Bucket
 
-	hasIndex bool
 	indexs []string
 	shouldDropIndex bool
 	shouldDropDatabase bool
@@ -52,7 +51,7 @@ func (c *couchbaseDB) InitThread(ctx context.Context, threadID int, threadCount 
 }
 
 func (c *couchbaseDB) CleanupThread(ctx context.Context) {
-	if c.shouldDropIndex && c.hasIndex {
+	if c.shouldDropIndex && (len(c.indexs) > 0) {
 		// 删除所有索引
 		start := time.Now()
 		err := c.database.Manager("", "").DropIndex(index_name, true)
@@ -183,38 +182,34 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
 	}
 
-	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)
-	if hasIndex {
-		cou.indexs = getAllField(p.GetString(couchbaseIndexs, ""))
-		if len(cou.indexs) > 0 {
-			fmt.Println("create index ....")
-			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
-			start := time.Now()
-			mgr := bu.Manager("", "")
-			err = mgr.CreateIndex(index_name, cou.indexs, true, false)
-			if err != nil {
-				fmt.Printf("create index error, err: %v\n", err)
-				// return nil, nil
-			}
-			indexs, err := mgr.GetIndexes()
-			fmt.Printf("indexs: %+v\n", indexs)
-			fmt.Println("start to watch")
-			err = WatchBuildingIndexes(mgr, 3600 *time.Second)
-			//building, err := mgr.BuildDeferredIndexes()
-			//fmt.Println("building:", building)
-			//indexs, err := mgr.GetIndexes()
-			//if err != nil {
-			//	fmt.Println("get indexs err:", err)
-			//}
-			//fmt.Printf("indexs: %+v\n", indexs)
-			//err = mgr.WatchIndexes(building, false, 3600 *time.Second)
-			if err != nil {
-				fmt.Printf("watch index out of time, err: %v\n", err)
-				return nil, nil
-			}
-			cou.hasIndex = hasIndex
-			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
+	cou.indexs = getAllField(p.GetString(couchbaseIndexs, ""))
+	if len(cou.indexs) > 0 {
+		fmt.Println("create index ....")
+		fmt.Printf("indexs = %v\n", cou.indexs)
+		start := time.Now()
+		mgr := bu.Manager("", "")
+		err = mgr.CreateIndex(index_name, cou.indexs, true, false)
+		if err != nil {
+			fmt.Printf("create index error, err: %v\n", err)
+			// return nil, nil
 		}
+		indexs, err := mgr.GetIndexes()
+		fmt.Printf("indexs: %+v\n", indexs)
+		fmt.Println("start to watch")
+		err = WatchBuildingIndexes(mgr, 3600 *time.Second)
+		//building, err := mgr.BuildDeferredIndexes()
+		//fmt.Println("building:", building)
+		//indexs, err := mgr.GetIndexes()
+		//if err != nil {
+		//	fmt.Println("get indexs err:", err)
+		//}
+		//fmt.Printf("indexs: %+v\n", indexs)
+		//err = mgr.WatchIndexes(building, false, 3600 *time.Second)
+		if err != nil {
+			fmt.Printf("watch index out of time, err: %v\n", err)
+			return nil, nil
+		}
+		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
 	return cou, nil
 }

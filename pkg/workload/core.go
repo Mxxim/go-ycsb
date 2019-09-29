@@ -80,7 +80,7 @@ type core struct {
 
 	valuePool sync.Pool
 
-	hasIndex bool
+	fullrandom bool
 	fieldValueGenerator ycsb.Generator // Sequential [0, 256）
 	fieldKeySequence    ycsb.Generator // Sequential [0, fieldcount)
 }
@@ -312,7 +312,7 @@ func (c *core) DoInsert(ctx context.Context, db ycsb.DB) error {
 	dbKey := c.buildKeyName(keyNum)
 
 	values := make(map[string][]byte)
-	if c.hasIndex {
+	if !c.fullrandom {
 		values = c.buildUniformValues(state)
 		defer c.putValues(values)
 	} else {
@@ -545,7 +545,7 @@ func (c *core) doTransactionInsert(ctx context.Context, db ycsb.DB, state *coreS
 	dbKey := c.buildKeyName(keyNum)
 
 	values := make(map[string][]byte)
-	if c.hasIndex {
+	if !c.fullrandom {
 		values = c.buildUniformValues(state)
 		defer c.putValues(values)
 	} else {
@@ -774,7 +774,7 @@ func (coreCreator) Create(p *properties.Properties) (ycsb.Workload, error) {
 		},
 	}
 
-	c.hasIndex = p.GetBool(prop.HasIndex, prop.HasIndexDefault)
+	c.fullrandom = p.GetBool(prop.Fullrandom, prop.FullrandomDefault)
 
 	return c, nil
 }

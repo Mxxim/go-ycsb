@@ -38,7 +38,6 @@ type mongoDB struct {
 	collname string
 	coll     *mongo.Collection
 
-	hasIndex           bool
 	indexs             []string
 	shouldDropIndex    bool
 	shouldDropDatabase bool
@@ -58,7 +57,7 @@ func (m *mongoDB) InitThread(ctx context.Context, threadID int, threadCount int)
 // 清空数据库的操作需要消耗时间，务必打印出清空所需的时间，
 // 以便在统计结果的时候，得到测试真正消耗的时间
 func (m *mongoDB) CleanupThread(ctx context.Context) {
-	if m.shouldDropIndex && m.hasIndex {
+	if m.shouldDropIndex && (len(m.indexs) > 0) {
 		// 删除所有索引
 		start := time.Now()
 		indexView := m.coll.Indexes()
@@ -261,33 +260,30 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		fieldCount:         p.GetInt64(prop.FieldCount, 5),
 	}
 
-	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)
-	if hasIndex {
-		m.indexs = getAllField(p.GetString(mongodbIndexs, ""))
-		if len(m.indexs) > 0 {
-			fmt.Println("create index ....")
-			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, m.indexs)
-			start := time.Now()
+	m.indexs = getAllField(p.GetString(mongodbIndexs, ""))
+	if len(m.indexs) > 0 {
+		fmt.Println("create index ....")
+		fmt.Printf("indexs = %v\n", m.indexs)
+		start := time.Now()
 
-			var indexModels []mongo.IndexModel
-			for _, fieldKey := range m.indexs {
-				var bsonxD bsonx.Doc
-				bsonxD = append(bsonxD, bsonx.Elem{fieldKey, bsonx.Int32(1)})
-				indexModels = append(indexModels, mongo.IndexModel{
-					Keys: bsonxD,
-					Options: options.Index().SetName(fieldKey),
-				})
-			}
-
-			indexView := coll.Indexes()
-			_, err = indexView.CreateMany(context.Background(), indexModels)
-			if err != nil {
-				return nil, err
-			}
-
-			m.hasIndex = hasIndex
-			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
+		// 创建非组合索引
+		var indexModels []mongo.IndexModel
+		for _, fieldKey := range m.indexs {
+			var bsonxD bsonx.Doc
+			bsonxD = append(bsonxD, bsonx.Elem{fieldKey, bsonx.Int32(1)})
+			indexModels = append(indexModels, mongo.IndexModel{
+				Keys: bsonxD,
+				Options: options.Index().SetName(fieldKey),
+			})
 		}
+
+		indexView := coll.Indexes()
+		_, err = indexView.CreateMany(context.Background(), indexModels)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
 	return m, nil
 }

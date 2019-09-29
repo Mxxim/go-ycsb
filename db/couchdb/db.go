@@ -27,7 +27,6 @@ type couchDB struct {
 	cli      *couchdb.Client
 	database   couchdb.DatabaseService
 
-	hasIndex bool
 	indexs []string
 	indexId string
 	shouldDropIndex bool
@@ -63,7 +62,7 @@ func (m *couchDB) InitThread(ctx context.Context, threadID int, threadCount int)
 }
 
 func (m *couchDB) CleanupThread(ctx context.Context) {
-	if m.shouldDropIndex && m.hasIndex {
+	if m.shouldDropIndex && (len(m.indexs) > 0) {
 		// 删除所有索引
 		start := time.Now()
 		res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+m.indexId+"/json/test_index", nil, "application/json")
@@ -247,9 +246,6 @@ func (m *couchDB) Update(ctx context.Context, table string, key string, values m
 type couchdbCreator struct {
 }
 
-
-
-
 func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	u, err := url.Parse("http://127.0.0.1:5984/")
 	if err != nil {
@@ -289,41 +285,38 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
 
 	}
-	hasIndex := p.GetBool(prop.HasIndex, prop.HasIndexDefault)
-	if hasIndex {
-		cou.indexs = getAllField(p.GetString(couchdbIndexs, ""))
-		if len(cou.indexs) > 0 {
-			fmt.Println("create index ....")
-			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, cou.indexs)
-			start := time.Now()
 
-			data_field := jsonField{Fields:cou.indexs}
-			data_object := jsonData{
-				Index: data_field,
-				Name:  "test_index",
-			}
+	cou.indexs = getAllField(p.GetString(couchdbIndexs, ""))
+	if len(cou.indexs) > 0 {
+		fmt.Println("create index ....")
+		fmt.Printf("indexs = %v\n", cou.indexs)
+		start := time.Now()
 
-			var b bytes.Buffer
-			if err := json.NewEncoder(&b).Encode(data_object); err != nil {
-				return nil, err
-			}
-
-			res, err := client.Request(http.MethodPost, "/db/_index", &b, "application/json")
-			if err != nil {
-				return nil, err
-			}
-			defer closeResponseBody(res)
-
-			if res.StatusCode != 200 {
-				fmt.Println("[ERROR] failed to create index by 'POST /db/_index'")
-				return nil, errors.New("[ERROR] failed to create index by 'POST /db/_index'")
-			}
-			var response DResponse
-			err = json.NewDecoder(res.Body).Decode(&response)
-			cou.hasIndex = hasIndex
-			cou.indexId = response.ID
-			fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
+		data_field := jsonField{Fields:cou.indexs}
+		data_object := jsonData{
+			Index: data_field,
+			Name:  "test_index",
 		}
+
+		var b bytes.Buffer
+		if err := json.NewEncoder(&b).Encode(data_object); err != nil {
+			return nil, err
+		}
+
+		res, err := client.Request(http.MethodPost, "/db/_index", &b, "application/json")
+		if err != nil {
+			return nil, err
+		}
+		defer closeResponseBody(res)
+
+		if res.StatusCode != 200 {
+			fmt.Println("[ERROR] failed to create index by 'POST /db/_index'")
+			return nil, errors.New("[ERROR] failed to create index by 'POST /db/_index'")
+		}
+		var response DResponse
+		err = json.NewDecoder(res.Body).Decode(&response)
+		cou.indexId = response.ID
+		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
 	return cou, nil
 }

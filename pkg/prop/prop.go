@@ -110,8 +110,8 @@ const (
 	KeyPrefixDefault = "user"
 
 	// index
-	HasIndex = "hasIndex"
-	HasIndexDefault = false
+	Fullrandom = "fullrandom"
+	FullrandomDefault = true
 	DropIndex = "dropIndex"
 	DropIndexDefault = false
 	DropDatabase = "dropDatabase"

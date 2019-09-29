@@ -22,23 +22,19 @@ scanproportion=0
 insertproportion=0
 scanvalueproportion=1
 
-# 是否建立索引
-hasIndex=false
+# 是否为完全随机数
+fullrandom=true
 
 # 是否在操作完成后删除所有索引
 dropIndex=false
+
 # 是否在操作完成后删除所有db
 dropDatabase=false
 
-# mongodb索引列
-# 只有当 hasIndex 为true的时候，这个配置项才生效，它将会创建一个复合索引，
-# 比如配置为：field0,field1,field2，则下述三种查询都将通过索引进行查询：
-# - field0,field1,field2
-# - field0,field1
-# - field0
-mongodb.indexs=field0,field1,field2,field3,field4
-couchbase.indexs=field0,field1,field2,field3,field4
-couchdb.indexs=field0,field1,field2,field3,field4
+# 各个db索引列，请在脚本中指定，勿在配置里指定。
+# mongodb.indexs=field0,field1,field2,field3,field4
+# couchbase.indexs=field0,field1,field2,field3,field4
+# couchdb.indexs=field0,field1,field2,field3,field4
 
 # couchbase的内存使用
 couchbase_memory=10240

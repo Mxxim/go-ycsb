@@ -15,9 +15,14 @@ insertproportion=1
 
 requestdistribution=sequential
 
-# 是否建立索引
-# 如果这个值为true，则执行insert操作的时候，fieldlength的第一个byte为[0, 255]随机数字，后面的byte内容均相同；
-hasIndex=false
+# 数据是否随机
+# 如果这个值为false，则执行insert操作的时候，fieldlength的第一个byte为[0, 255]随机数字，后面的byte内容均相同；
+fullrandom=true
+
+# 各个db索引列，请在脚本中指定，勿在配置里指定。代码里会判断，如果 indexs 为非空，则创建索引
+# mongodb.indexs=field0,field1,field2,field3,field4
+# couchbase.indexs=field0,field1,field2,field3,field4
+# couchdb.indexs=field0,field1,field2,field3,field4
 
 # couchbase的内存使用
 couchbase_memory=10240
