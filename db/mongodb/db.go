@@ -269,17 +269,18 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			fmt.Printf("hasIndex = %v, indexs = %v\n", hasIndex, m.indexs)
 			start := time.Now()
 
-			indexView := coll.Indexes()
-
-			var bsonxD bsonx.Doc
+			var indexModels []mongo.IndexModel
 			for _, fieldKey := range m.indexs {
+				var bsonxD bsonx.Doc
 				bsonxD = append(bsonxD, bsonx.Elem{fieldKey, bsonx.Int32(1)})
+				indexModels = append(indexModels, mongo.IndexModel{
+					Keys: bsonxD,
+					Options: options.Index().SetName(fieldKey),
+				})
 			}
 
-			_, err = indexView.CreateOne(context.Background(), mongo.IndexModel{
-				Keys: bsonxD,
-				Options: options.Index().SetName("fieldIndex"),
-			})
+			indexView := coll.Indexes()
+			_, err = indexView.CreateMany(context.Background(), indexModels)
 			if err != nil {
 				return nil, err
 			}
