@@ -250,7 +250,12 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		}
 		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
-	fmt.Printf("indexes: %+v\n", mgr.GetIndexes())
+
+	registeredIndexs, err := mgr.GetIndexes()
+	if err == nil {
+		fmt.Printf("indexes: %+v\n", registeredIndexs)
+	}
+
 	return cou, nil
 }
 
