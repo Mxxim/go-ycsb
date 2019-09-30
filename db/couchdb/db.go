@@ -13,8 +13,10 @@ import (
 	"github.com/zemirco/couchdb"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -28,9 +30,12 @@ type couchDB struct {
 	database   couchdb.DatabaseService
 
 	indexs []string
-	indexId string
+	indexId []string
 	shouldDropIndex bool
 	shouldDropDatabase bool
+
+	keyCount  int64
+	fieldCount int64
 }
 type jsonField struct {
 	Fields []string `json:"fields"`
@@ -65,20 +70,22 @@ func (m *couchDB) CleanupThread(ctx context.Context) {
 	if m.shouldDropIndex && (len(m.indexs) > 0) {
 		// 删除所有索引
 		start := time.Now()
-		res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+m.indexId+"/json/test_index", nil, "application/json")
-		if err != nil {
-			fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
-		} else if err == nil && res != nil {
-			jsonResult := make(map[string]interface{})
-			decoder := json.NewDecoder(res.Body)
-			decoder.UseNumber()
-			if err = decoder.Decode(&jsonResult); err != nil {
+		for _, indexId := range m.indexId {
+			res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+indexId+"/json/test_index", nil, "application/json")
+			if err != nil {
 				fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
-			} else if ok := jsonResult["ok"].(bool); !ok {
-				fmt.Println("[ERROR] failed to drop all indexs")
+			} else if err == nil && res != nil {
+				jsonResult := make(map[string]interface{})
+				decoder := json.NewDecoder(res.Body)
+				decoder.UseNumber()
+				if err = decoder.Decode(&jsonResult); err != nil {
+					fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
+				} else if ok := jsonResult["ok"].(bool); !ok {
+					fmt.Println("[ERROR] failed to drop all indexs")
+				}
 			}
+			defer closeResponseBody(res)
 		}
-		defer closeResponseBody(res)
 		fmt.Printf("drop all indexs time used: %v\n", time.Now().Sub(start))
 	}
 
@@ -127,24 +134,33 @@ func (m *couchDB) Read(ctx context.Context, table string, key string, fields []s
 }
 
 func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
-	var fieldstring string
-	i := 0
-	for k, v := range values {
-		var temp = "\"" + k + "\""
-		fieldstring += temp
-		fieldstring += ":"
-		temp = "\"" + base64.StdEncoding.EncodeToString(v) + "\""
-		fieldstring += temp
-		i ++
-		if i != len(values) {
-			fieldstring += ","
-		}
+	ranKey := m.getRandomKey()
+	var doc map[string]interface{}
+	res, err := m.cli.Request(http.MethodGet, "/db/" + ranKey, nil, "application/json")
+	if err != nil {
+		fmt.Printf("[ERROR] failed to read couchbase, key = %v, err: %v\n", ranKey, err)
+		return nil, err
 	}
+	defer closeResponseBody(res)
+	if res.StatusCode == 200 {
+		err = json.NewDecoder(res.Body).Decode(&doc)
+		if err != nil {
+			fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', key = %v, err: %v\n", ranKey, err)
+			return nil, err
+		}
+	} else {
+		fmt.Printf("[ERROR] we may can not find document '%v', because the response status code is %v\n", ranKey, res.StatusCode)
+	}
+	ranFieldName := m.getRandomField()
+
+	start := time.Now()
+	v := doc[ranFieldName]
+	var fieldstring = "\"" + ranFieldName + "\"" + ":" + "\"" + v.(string) + "\""
 	var selectorStr = "{" + fieldstring +"}"
 	var jsonStr = "{\"selector\":" + selectorStr +",\"use_index\":\"test_index\"}"
 
 	b := bytes.NewBufferString(jsonStr)
-	res, err := m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
+	res, err = m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
 	if err != nil {
 		fmt.Printf("[ERROR] failed to scanvalue couchdb, err: %v\n", err)
 		return nil, err
@@ -177,6 +193,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 		}
 
 	}
+	fmt.Printf("==== scan value time used %v\n", time.Now().Sub(start))
 	return nil, nil
 }
 
@@ -283,7 +300,8 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		database: db,
 		shouldDropIndex:    p.GetBool(prop.DropIndex, prop.DropIndexDefault),
 		shouldDropDatabase: p.GetBool(prop.DropDatabase, prop.DropDatabaseDefault),
-
+		keyCount:           p.GetInt64(prop.RecordCount, prop.RecordCountDefault),
+		fieldCount:         p.GetInt64(prop.FieldCount, 5),
 	}
 
 	cou.indexs = getAllField(p.GetString(couchdbIndexs, ""))
@@ -291,31 +309,35 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 		fmt.Println("create index ....")
 		fmt.Printf("indexs = %v\n", cou.indexs)
 		start := time.Now()
+		for _, k := range cou.indexs {
+			var temp []string
+			temp = append(temp, k)
+			data_object := jsonData{
+				Index: jsonField{Fields:temp},
+				Name:  "test_index",
+			}
 
-		data_field := jsonField{Fields:cou.indexs}
-		data_object := jsonData{
-			Index: data_field,
-			Name:  "test_index",
-		}
+			var b bytes.Buffer
+			if err := json.NewEncoder(&b).Encode(data_object); err != nil {
+				return nil, err
+			}
 
-		var b bytes.Buffer
-		if err := json.NewEncoder(&b).Encode(data_object); err != nil {
-			return nil, err
-		}
+			res, err := client.Request(http.MethodPost, "/db/_index", &b, "application/json")
+			if err != nil {
+				return nil, err
+			}
+			defer closeResponseBody(res)
 
-		res, err := client.Request(http.MethodPost, "/db/_index", &b, "application/json")
-		if err != nil {
-			return nil, err
-		}
-		defer closeResponseBody(res)
+			if res.StatusCode != 200 {
+				fmt.Println("[ERROR] failed to create index by 'POST /db/_index'")
+				return nil, errors.New("[ERROR] failed to create index by 'POST /db/_index'")
+			}
+			var response DResponse
+			err = json.NewDecoder(res.Body).Decode(&response)
+			cou.indexId = append(cou.indexId, response.ID)
 
-		if res.StatusCode != 200 {
-			fmt.Println("[ERROR] failed to create index by 'POST /db/_index'")
-			return nil, errors.New("[ERROR] failed to create index by 'POST /db/_index'")
+
 		}
-		var response DResponse
-		err = json.NewDecoder(res.Body).Decode(&response)
-		cou.indexId = response.ID
 		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
 	return cou, nil
@@ -335,26 +357,15 @@ func getAllField(str string) []string {
 	return fields
 }
 
-//func Post(url string, data interface{}, contentType string) (content string) {
-//	jsonStr, _ := json.Marshal(data)
-//	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-//	req.Header.Add("content-type", contentType)
-//	if err != nil {
-//		panic(err)
-//	}
-//	defer req.Body.Close()
-//
-//	client := &http.Client{Timeout: 5 * time.Second}
-//	resp, error := client.Do(req)
-//	if error != nil {
-//		panic(error)
-//	}
-//	defer resp.Body.Close()
-//
-//	result, _ := ioutil.ReadAll(resp.Body)
-//	content = string(result)
-//	return
-//}
+func (m *couchDB) getRandomKey() string {
+	ran := rand.Int63n(m.keyCount)
+	return "user"+strconv.FormatInt(ran, 10)
+}
+
+func (m *couchDB) getRandomField() string {
+	ran := rand.Int63n(m.fieldCount)
+	return "field"+strconv.FormatInt(ran, 10)
+}
 
 // closeResponseBody discards the body and then closes it to enable returning it to
 // connection pool
