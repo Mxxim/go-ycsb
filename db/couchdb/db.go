@@ -264,7 +264,7 @@ type couchdbCreator struct {
 }
 
 func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
-	u, err := url.Parse("http://127.0.0.1:5984/user:password")
+	u, err := url.Parse("http://127.0.0.1:5984/")
 	if err != nil {
 		return nil, err
 	}
