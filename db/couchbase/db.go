@@ -174,10 +174,9 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	})
 	if err != nil {
 		fmt.Printf("[ERROR] failed to authenticate db, err: %v\n", err)
+		cli.Close()
 		return nil, err
 	}
-
-
 
 	bu, err := cli.OpenBucket(dbname, "")
 	if err != nil {
