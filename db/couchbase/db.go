@@ -207,6 +207,7 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	}
 
 	bu.SetOperationTimeout(GlobalTimeout)
+	bu.SetN1qlTimeout(GlobalTimeout)
 
 	cou := &couchbaseDB{
 		cli: cli,
