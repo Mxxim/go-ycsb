@@ -160,7 +160,19 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	var jsonStr = "{\"selector\":" + selectorStr +",\"use_index\":\"test_index\"}"
 
 	b := bytes.NewBufferString(jsonStr)
-	res, err = m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
+
+	req, err := http.NewRequest(http.MethodPost, "http://172.16.3.5:5984/db/_find", b)
+	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
+	req.SetBasicAuth("user", "password")
+
+	client := http.Client{Timeout:360000}
+
+	res, err = client.Do(req)
+
+
+
+
+	// res, err = m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
 	if err != nil {
 		fmt.Printf("[ERROR] failed to scanvalue couchdb, err: %v\n", err)
 		return nil, err
