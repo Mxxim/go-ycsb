@@ -38,12 +38,12 @@ run() {
 #    # write only
 #    echo "WRITE $storage ($recordName) ..."
 #    ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
-
-    du -sh /opt/couchdb/data/
-
-    # read only
-    echo "READ $storage ($recordName) ..."
-    ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+#
+#    du -sh /opt/couchdb/data/
+#
+#    # read only
+#    echo "READ $storage ($recordName) ..."
+#    ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
     if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
       # scanvalue only with index

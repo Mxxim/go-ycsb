@@ -161,7 +161,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 
 	b := bytes.NewBufferString(jsonStr)
 
-	req, err := http.NewRequest(http.MethodPost, "http://172.16.3.5:5984/db/_find", b)
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:5984/db/_find", b)
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	// req.SetBasicAuth("user", "password")
 
