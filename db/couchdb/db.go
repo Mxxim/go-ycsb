@@ -165,7 +165,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	req.SetBasicAuth("user", "password")
 
-	client := http.Client{Timeout:360000}
+	client := http.Client{Timeout:time.Second*360000}
 
 	res, err = client.Do(req)
 
