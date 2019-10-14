@@ -221,15 +221,23 @@ func (c couchbaseCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	cou.indexs = getAllField(p.GetString(couchbaseIndexs, ""))
 	mgr := bu.Manager("", "")
 	if len(cou.indexs) > 0 {
-		fmt.Println("create index ....")
+		fmt.Printf("create index ...., now time is %v\n", time.Now())
 		fmt.Printf("indexs = %v\n", cou.indexs)
 		start := time.Now()
 
 		for _, fn := range cou.indexs {
-			err = mgr.CreateIndex(fn, []string{fn}, true, false)
+			createStart := time.Now()
+			//err = mgr.CreateIndex(fn, []string{fn}, true, false)
+			err = mgr.CreateIndex(fn, []string{fn}, true, true)
+			fmt.Printf("[WARN] create index '%v' time used: %v\n", fn, time.Now().Sub(createStart))
 			if err != nil {
 				fmt.Printf("[ERROR] create index error, err: %v\n", err)
 			}
+		}
+
+		_, err := mgr.BuildDeferredIndexes()
+		if err != nil {
+			fmt.Printf("[ERROR] build index error, err: %v\n", err)
 		}
 
 		indexs, err := mgr.GetIndexes()

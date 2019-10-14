@@ -268,7 +268,7 @@ func (c mongodbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 	m.indexs = getAllField(p.GetString(mongodbIndexs, ""))
 	if len(m.indexs) > 0 {
-		fmt.Println("create index ....")
+		fmt.Printf("create index ...., now time is %v\n", time.Now())
 		fmt.Printf("indexs = %v\n", m.indexs)
 		start := time.Now()
 
