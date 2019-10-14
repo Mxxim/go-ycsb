@@ -168,16 +168,14 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	client := http.Client{Timeout:time.Second*360000}
 
 	res, err = client.Do(req)
-
-
-
-
+	fmt.Println("%+v\n", res)
 	// res, err = m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
 	if err != nil {
 		fmt.Printf("[ERROR] failed to scanvalue couchdb, err: %v\n", err)
 		return nil, err
 	}
 	defer closeResponseBody(res)
+
 
 	var docs []map[string]interface{}
 	var response map[string]interface{}
