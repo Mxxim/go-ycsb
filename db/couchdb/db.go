@@ -157,7 +157,13 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	v := doc[ranFieldName]
 	var fieldstring = "\"" + ranFieldName + "\"" + ":" + "\"" + v.(string) + "\""
 	var selectorStr = "{" + fieldstring +"}"
-	var jsonStr = "{\"selector\":" + selectorStr +",\"use_index\":\"test_index\"}"
+
+	var jsonStr string
+	if len(m.indexId) > 0 {
+		jsonStr = "{\"selector\":" + selectorStr +",\"use_index\":\"test_index_"+ranFieldName+"\"}"
+	} else {
+		jsonStr = "{\"selector\":" + selectorStr +"}"
+	}
 
 	b := bytes.NewBufferString(jsonStr)
 
@@ -324,7 +330,7 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 			temp = append(temp, k)
 			data_object := jsonData{
 				Index: jsonField{Fields:temp},
-				Name:  "test_index",
+				Name:  "test_index_" + k,
 			}
 
 			var b bytes.Buffer
