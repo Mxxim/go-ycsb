@@ -30,29 +30,29 @@ run() {
 
 
     # load data
-#    echo "LOAD $storage ($recordName) ..."
-#    ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count} -p couchdb.indexs=field0,field1,field2,field3,field4
-#
-#    du -sh /opt/couchdb/data/
-#
-#    # write only
-#    echo "WRITE $storage ($recordName) ..."
-#    ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
-#
-#    du -sh /opt/couchdb/data/
-#
-#    # read only
-#    echo "READ $storage ($recordName) ..."
-#    ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
+    echo "LOAD $storage ($recordName) ..."
+    ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count} -p couchdb.indexs=field0,field1,field2,field3,field4
+
+    du -sh /opt/couchdb/data/
+
+    # write only
+    echo "WRITE $storage ($recordName) ..."
+    ./bin/go-ycsb run ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_W.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${write_count} -p recordcount=${load_count}
+
+    du -sh /opt/couchdb/data/
+
+    # read only
+    echo "READ $storage ($recordName) ..."
+    ./bin/go-ycsb run ${storage} -P workloads/workload_READ > logs/${storage}_${recordName}_R.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${OPERATIONCOUNT} -p recordcount=${OPERATIONCOUNT}
 
     if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
       # scanvalue only with index
       echo "SCANVALUE $storage ($recordName) with index..."
       ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=false
 
-#      # scanvalue only without index
-#      echo "SCANVALUE $storage ($recordName) without index..."
-#      ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=false -p dropDatabase=true
+      # scanvalue only without index
+      echo "SCANVALUE $storage ($recordName) without index..."
+      ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITHOUT_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=false -p dropDatabase=true
     else
       # scanvalue only with index
       echo "SCANVALUE $storage ($recordName) with index..."
@@ -72,12 +72,12 @@ echo start server_couchdb.sh ... && date
 # 5 - sanvalue次数
 # 6 - read次数
 
-#### couchdb 1mb/op, total 1G
-#echo "================ start couchdb 1M_1G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
-#echo "================ finish couchdb 1M_1G ================" && date
-#sleep 30
+### couchdb 1mb/op, total 1G
+echo "================ start couchdb 1M_1G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
+echo "================ finish couchdb 1M_1G ================" && date
+sleep 30
 
 #
 ###### couchdb 1mb/op, total 16G

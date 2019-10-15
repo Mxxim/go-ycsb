@@ -162,7 +162,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 	b := bytes.NewBufferString(jsonStr)
 
 	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:5984/db/_find", b)
-	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
+	req.Header.Set("Content-Type", "application/json")
 	// req.SetBasicAuth("user", "password")
 
 	client := http.Client{Timeout:time.Second*360000, Jar:m.cli.CookieJar}
