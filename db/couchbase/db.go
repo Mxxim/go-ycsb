@@ -126,16 +126,14 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	}
 	defer rows.Close()
 	var res map[string]interface{}
-	var final_res map[string][]byte
 	// var row map[string][]byte
 	var row interface{}
 	for rows.Next(&row) {
 		res = row.(map[string]interface{})
 	}
-	final_res = res[dbname].(map[string][]byte)
 
 	//fmt.Println(myQuery)
-	fmt.Println(final_res)
+	fmt.Println(res)
 
 	fmt.Printf("==== scan value time used %v\n", time.Now().Sub(start))
 	return nil, nil
