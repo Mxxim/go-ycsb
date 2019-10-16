@@ -64,7 +64,7 @@ run() {
           ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=true
         else
           echo "SCANVALUE $storage ($recordName) with index..."
-          ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=true -p couchbase.indexs=field0,field1,field2,field3,field4
+          ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=false -p dropDatabase=false -p couchbase.indexs=field0,field1,field2,field3,field4
         fi
     fi
 }
@@ -81,11 +81,11 @@ echo start server_couchbase.sh ... && date
 
 
 ##### couchbase 200b/op, total 1G
-echo "================ start couchbase 200b_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchbase 200b_1G 320 $FIELDCOUNT 100 1024 335544 335545
-echo "================ finish couchbase 200b_1G ================" && date
-sleep 30
+#echo "================ start couchbase 200b_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 200b_1G 320 $FIELDCOUNT 100 1024 335544 335545
+#echo "================ finish couchbase 200b_1G ================" && date
+#sleep 30
 #
 #
 ###### couchbase 200b/op, total 256G
@@ -103,19 +103,19 @@ echo "================ finish couchbase 20kb_1G ================" && date
 sleep 30
 
 ###### couchbase 200b/op, total 16G
-echo "================ start couchbase 200b_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchbase 200b_16G 320 $FIELDCOUNT 50 1024 5368709 5368709
-echo "================ finish couchbase 200b_16G ================" && date
-sleep 30
+#echo "================ start couchbase 200b_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 200b_16G 320 $FIELDCOUNT 50 1024 5368709 5368709
+#echo "================ finish couchbase 200b_16G ================" && date
+#sleep 30
 
 #
 ###### couchbase 20kb/op, total 16G
-echo "================ start couchbase 20kb_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchbase 20kb_16G 4096 $FIELDCOUNT 50 1024 419430 419431
-echo "================ finish couchbase 20kb_16G ================" && date
-sleep 30
+#echo "================ start couchbase 20kb_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 20kb_16G 4096 $FIELDCOUNT 50 1024 419430 419431
+#echo "================ finish couchbase 20kb_16G ================" && date
+#sleep 30
 #
 ###### couchbase 20kb/op, total 256G
 #echo "================ start couchbase 20kb_256G ================" && date
@@ -126,11 +126,11 @@ sleep 30
 #
 #
 ###### couchbase 1mb/op, total 1G
-echo "================ start couchbase 1M_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchbase 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
-echo "================ finish couchbase 1M_1G ================" && date
-sleep 30
+#echo "================ start couchbase 1M_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchbase 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
+#echo "================ finish couchbase 1M_1G ================" && date
+#sleep 30
 
 #
 ##### couchbase 1mb/op, total 16G

@@ -117,6 +117,7 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	fieldstring := ranFieldName + "=\"" + base64.StdEncoding.EncodeToString(val) + "\""
 
 	myQuery := "SELECT * FROM `" + dbname + "` WHERE " + fieldstring
+	fmt.Println(myQuery)
 	myN1qlQuery := gocb.NewN1qlQuery(myQuery)
 	myN1qlQuery.Timeout(GlobalTimeout)
 	rows, err := c.database.ExecuteN1qlQuery(myN1qlQuery, nil)
