@@ -31,7 +31,7 @@ run() {
 
     # load data
     echo "LOAD $storage ($recordName) ..."
-    ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count} -p couchdb.indexs=field0,field1,field2,field3,field4
+    ./bin/go-ycsb load ${storage} -P workloads/workload_WRITE > logs/${storage}_${recordName}_LOAD.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${load_count} -p recordcount=${load_count}
 
     du -sh /opt/couchdb/data/
 
@@ -48,7 +48,7 @@ run() {
     if [ ${load_count} != 85894846 -a ${load_count} != 6710886 -a ${load_count} != 131072 ];then
       # scanvalue only with index
       echo "SCANVALUE $storage ($recordName) with index..."
-      ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=false
+      ./bin/go-ycsb run ${storage} -P workloads/workload_SCANVALUE > logs/${storage}_${recordName}_SV_WITH_INDEX.txt -p fieldlength=${fieldLength} -p fieldcount=${fieldCount} -p operationcount=${scanCount} -p recordcount=${OPERATIONCOUNT} -p dropIndex=true -p dropDatabase=false -p couchdb.indexs=field0,field1,field2,field3,field4
 
       # scanvalue only without index
       echo "SCANVALUE $storage ($recordName) without index..."
