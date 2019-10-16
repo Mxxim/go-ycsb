@@ -71,8 +71,8 @@ func (m *couchDB) CleanupThread(ctx context.Context) {
 	if m.shouldDropIndex && (len(m.indexs) > 0) {
 		// 删除所有索引
 		start := time.Now()
-		for _, indexId := range m.indexId {
-			res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+indexId+"/json/test_index", nil, "application/json")
+		for i, indexId := range m.indexId {
+			res, err := m.cli.Request(http.MethodDelete, "/db/_index/"+indexId+"/json/test_index" + m.indexs[i], nil, "application/json")
 			if err != nil {
 				fmt.Printf("[ERROR] drop all indexs error: %v\n", err)
 			} else if err == nil && res != nil {
