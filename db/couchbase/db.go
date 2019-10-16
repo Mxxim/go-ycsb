@@ -351,4 +351,3 @@ func WatchRemoveBucket(mgr *gocb.ClusterManager, timeout time.Duration) error {
 
 	return nil
 }
-

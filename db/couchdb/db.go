@@ -346,8 +346,15 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	}
 	warm_index_start := time.Now()
 	err = WarmAllIndex(cou)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	fmt.Printf("warm index time used: %v\n", time.Now().Sub(warm_index_start))
+	fmt.Println("start to watch")
 	err = WatchBuildingIndexes(cou.cli, GlobalTimeout)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 
 	return cou, nil
@@ -416,6 +423,7 @@ func WatchBuildingIndexes(cli *couchdb.Client, timeout time.Duration) error {
 	timeoutTime := time.Now().Add(timeout)
 	for {
 		tasks, err := cli.ActiveTasks()
+		fmt.Println(tasks)
 		if err != nil {
 			return err
 		}
