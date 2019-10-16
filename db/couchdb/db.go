@@ -23,6 +23,7 @@ import (
 
 
 const couchdbIndexs = "couchdb.indexs"
+const GlobalTimeout = 10 *time.Hour
 
 
 type couchDB struct {
@@ -134,22 +135,9 @@ func (m *couchDB) Read(ctx context.Context, table string, key string, fields []s
 }
 
 func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values map[string][]byte) ([]map[string][]byte, error) {
-	ranKey := m.getRandomKey()
-	var doc map[string]interface{}
-	res, err := m.cli.Request(http.MethodGet, "/db/" + ranKey, nil, "application/json")
+	doc, err := getRandomvalue(m)
 	if err != nil {
-		fmt.Printf("[ERROR] failed to read couchbase, key = %v, err: %v\n", ranKey, err)
 		return nil, err
-	}
-	defer closeResponseBody(res)
-	if res.StatusCode == 200 {
-		err = json.NewDecoder(res.Body).Decode(&doc)
-		if err != nil {
-			fmt.Printf("[ERROR] failed to decode response from 'PUT /{dbname}/{docId}', key = %v, err: %v\n", ranKey, err)
-			return nil, err
-		}
-	} else {
-		fmt.Printf("[ERROR] we may can not find document '%v', because the response status code is %v\n", ranKey, res.StatusCode)
 	}
 	ranFieldName := m.getRandomField()
 
@@ -173,7 +161,7 @@ func (m *couchDB) ScanValue(ctx context.Context, table string, count int, values
 
 	client := http.Client{Timeout:time.Second*360000, Jar:m.cli.CookieJar}
 
-	res, err = client.Do(req)
+	res, err := client.Do(req)
 	fmt.Printf("%+v\n", res)
 	// res, err = m.cli.Request(http.MethodPost, "/db/_find", b, "application/json;charset=UTF-8")
 	if err != nil {
@@ -321,10 +309,11 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 	}
 
 	cou.indexs = getAllField(p.GetString(couchdbIndexs, ""))
+	start := time.Now()
 	if len(cou.indexs) > 0 {
 		fmt.Println("create index ....")
 		fmt.Printf("indexs = %v\n", cou.indexs)
-		start := time.Now()
+
 		for _, k := range cou.indexs {
 			var temp []string
 			temp = append(temp, k)
@@ -354,13 +343,101 @@ func (c couchdbCreator) Create(p *properties.Properties) (ycsb.DB, error) {
 
 
 		}
-		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
 	}
+	warm_index_start := time.Now()
+	err = WarmAllIndex(cou)
+	fmt.Printf("warm index time used: %v\n", time.Now().Sub(warm_index_start))
+	err = WatchBuildingIndexes(cou.cli, GlobalTimeout)
+	fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
+
 	return cou, nil
 }
 
 func init() {
 	ycsb.RegisterDBCreator("couchdb", couchdbCreator{})
+}
+func WarmIndex(index string, c *couchDB) error {
+	doc, err := getRandomvalue(c)
+	if err != nil {
+		return err
+	}
+	v := doc[index]
+	var fieldstring = "\"" + index + "\"" + ":" + "\"" + v.(string) + "\""
+	var selectorStr = "{" + fieldstring +"}"
+
+	var jsonStr string
+	jsonStr = "{\"selector\":" + selectorStr +",\"use_index\":\"test_index_"+index+"\"}"
+
+	b := bytes.NewBufferString(jsonStr)
+
+	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1:5984/db/_find", b)
+	req.Header.Set("Content-Type", "application/json")
+	// req.SetBasicAuth("user", "password")
+
+	client := http.Client{Timeout:time.Second*360000, Jar:c.cli.CookieJar}
+	_, err = client.Do(req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func WarmAllIndex(c *couchDB) error{
+	for _, index := range c.indexs {
+		err := WarmIndex(index, c)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func getRandomvalue(c *couchDB) (map[string]interface{},error) {
+	ranKey := c.getRandomKey()
+	var doc map[string]interface{}
+	res, err := c.cli.Request(http.MethodGet, "/db/" + ranKey, nil, "application/json")
+	if err != nil {
+		fmt.Printf("[ERROR] (Warm Index) failed to read couchbase, key = %v, err: %v\n", ranKey, err)
+		return nil, err
+	}
+	defer closeResponseBody(res)
+	if res.StatusCode == 200 {
+		err = json.NewDecoder(res.Body).Decode(&doc)
+		if err != nil {
+			fmt.Printf("[ERROR] (Warm Index) failed to decode response from 'PUT /{dbname}/{docId}', key = %v, err: %v\n", ranKey, err)
+			return nil, err
+		}
+	} else {
+		fmt.Printf("[ERROR] (Warm Index) we may can not find document '%v', because the response status code is %v\n", ranKey, res.StatusCode)
+	}
+	return doc, nil
+}
+func WatchBuildingIndexes(cli *couchdb.Client, timeout time.Duration) error {
+
+	curInterval := 50 * time.Millisecond
+	timeoutTime := time.Now().Add(timeout)
+	for {
+		tasks, err := cli.ActiveTasks()
+		if err != nil {
+			return err
+		}
+
+		if len(tasks) == 0 {
+			break
+		}
+
+		curInterval += 5 * time.Second
+		if curInterval > 1000 {
+			curInterval = 1000
+		}
+
+		if time.Now().Add(curInterval).After(timeoutTime) {
+			return errors.New("create index time out")
+		}
+
+		// Wait till our next poll interval
+		time.Sleep(curInterval)
+	}
+
+	return nil
 }
 
 func getAllField(str string) []string {

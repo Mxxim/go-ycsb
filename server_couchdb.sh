@@ -73,19 +73,19 @@ echo start server_couchdb.sh ... && date
 # 6 - read次数
 
 ### couchdb 1mb/op, total 1G
-echo "================ start couchdb 1M_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchdb 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
-echo "================ finish couchdb 1M_1G ================" && date
-sleep 30
+#echo "================ start couchdb 1M_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchdb 1M_1G 209716 $FIELDCOUNT 100 1024 512 512
+#echo "================ finish couchdb 1M_1G ================" && date
+#sleep 30
 
 #
 ###### couchdb 1mb/op, total 16G
-echo "================ start couchdb 1M_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run couchdb 1M_16G 209716 $FIELDCOUNT 50 1024 8192 8192
-echo "================ finish couchdb 1M_16G ================" && date
-sleep 30
+#echo "================ start couchdb 1M_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run couchdb 1M_16G 209716 $FIELDCOUNT 50 1024 8192 8192
+#echo "================ finish couchdb 1M_16G ================" && date
+#sleep 30
 
 
 ###### couchdb 1mb/op, total 256G
@@ -117,11 +117,11 @@ sleep 30
 #sleep 30
 #
 ###### couchdb 200b/op, total 1G
-#echo "================ start couchdb 200b_1G ================" && date
-#cd ${TEST_TOOL_PATH}
-#run couchdb 200b_1G 320 $FIELDCOUNT 100 671089 335544 335545
-#echo "================ finish couchdb 200b_1G ================" && date
-#sleep 30
+echo "================ start couchdb 200b_1G ================" && date
+cd ${TEST_TOOL_PATH}
+run couchdb 200b_1G 320 $FIELDCOUNT 100 100 200 200
+echo "================ finish couchdb 200b_1G ================" && date
+sleep 30
 #
 ###### couchdb 200b/op, total 16G
 #echo "================ start couchdb 200b_16G ================" && date

@@ -18,7 +18,7 @@ import (
 const (
 	dbname = "db14"
 	couchbaseIndexs	 = "couchbase.indexs"
-	GlobalTimeout = 1 *time.Hour
+	GlobalTimeout = 10 *time.Hour
 )
 
 type couchbaseDB struct {
@@ -131,9 +131,12 @@ func (c *couchbaseDB) ScanValue(ctx context.Context, table string, count int, va
 	for rows.Next(&row) {
 		res = row.(map[string]interface{})
 	}
+	if len(res) == 0 {
+		fmt.Println("scan value got no result")
+	}
 
-	//fmt.Println(myQuery)
-	fmt.Println(res)
+	// fmt.Println(myQuery)
+	// fmt.Println(res)
 
 	fmt.Printf("==== scan value time used %v\n", time.Now().Sub(start))
 	return nil, nil
