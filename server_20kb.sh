@@ -190,11 +190,11 @@ echo "================ finish leveldb 20kb_1G ================" && date
 sleep 30
 
 ##### mongodb 20kb/op, total 1G
-echo "================ start mongodb 20kb_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 20kb_1G $FIELDLENGTH $FIELDCOUNT 100 52429 26214 26215
-echo "================ finish mongodb 20kb_1G ================" && date
-sleep 30
+#echo "================ start mongodb 20kb_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 20kb_1G $FIELDLENGTH $FIELDCOUNT 100 52429 26214 26215
+#echo "================ finish mongodb 20kb_1G ================" && date
+#sleep 30
 
 ####### couchbase 20kb/op, total 16G
 #echo "================ start couchbase 20kb_16G ================" && date
@@ -211,11 +211,11 @@ echo "================ finish leveldb 20kb_16G ================" && date
 sleep 30
 
 ##### mongodb 20kb/op, total 16G
-echo "================ start mongodb 20kb_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 20kb_16G $FIELDLENGTH $FIELDCOUNT 50 52429 419430 419431
-echo "================ finish mongodb 20kb_16G ================" && date
-sleep 30
+#echo "================ start mongodb 20kb_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 20kb_16G $FIELDLENGTH $FIELDCOUNT 50 52429 419430 419431
+#echo "================ finish mongodb 20kb_16G ================" && date
+#sleep 30
 
 
 #### couchbase 20kb/op, total 256G
@@ -233,11 +233,11 @@ echo "================ finish leveldb 20kb_256G ================" && date
 sleep 30
 
 ##### mongodb 20kb/op, total 256G
-echo "================ start mongodb 20kb_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 20kb_256G $FIELDLENGTH $FIELDCOUNT 5 52429 6710886 6710887
-echo "================ finish mongodb 20kb_256G ================" && date
-sleep 30
+#echo "================ start mongodb 20kb_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 20kb_256G $FIELDLENGTH $FIELDCOUNT 5 52429 6710886 6710887
+#echo "================ finish mongodb 20kb_256G ================" && date
+#sleep 30
 
 
 

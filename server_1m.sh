@@ -194,11 +194,11 @@ echo "================ finish leveldb 1M_1G ================" && date
 sleep 30
 
 ##### mongodb 1mb/op, total 1G
-echo "================ start mongodb 1M_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_1G $FIELDLENGTH $FIELDCOUNT 100 1024 512 512
-echo "================ finish mongodb 1M_1G ================" && date
-sleep 30
+#echo "================ start mongodb 1M_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_1G $FIELDLENGTH $FIELDCOUNT 100 1024 512 512
+#echo "================ finish mongodb 1M_1G ================" && date
+#sleep 30
 #
 ##### couchbase 1mb/op, total 16G
 #echo "================ start couchbase 1M_16G ================" && date
@@ -215,11 +215,11 @@ echo "================ finish leveldb 1M_16G ================" && date
 sleep 30
 
 ##### mongodb 1mb/op, total 16G
-echo "================ start mongodb 1M_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_16G $FIELDLENGTH $FIELDCOUNT 50 1024 8192 8192
-echo "================ finish mongodb 1M_16G ================" && date
-sleep 30
+#echo "================ start mongodb 1M_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_16G $FIELDLENGTH $FIELDCOUNT 50 1024 8192 8192
+#echo "================ finish mongodb 1M_16G ================" && date
+#sleep 30
 
 ##### couchbase 1mb/op, total 256G
 #echo "================ start couchbase 1M_256G ================" && date
@@ -236,11 +236,11 @@ echo "================ finish leveldb 1M_256G ================" && date
 sleep 30
 
 ##### mongodb 1mb/op, total 256G
-echo "================ start mongodb 1M_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 1M_256G $FIELDLENGTH $FIELDCOUNT 5 1024 131072 131072
-echo "================ finish mongodb 1M_256G ================" && date
-sleep 30
+#echo "================ start mongodb 1M_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 1M_256G $FIELDLENGTH $FIELDCOUNT 5 1024 131072 131072
+#echo "================ finish mongodb 1M_256G ================" && date
+#sleep 30
 
 
 

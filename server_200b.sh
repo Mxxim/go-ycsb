@@ -189,11 +189,11 @@ echo "================ finish leveldb 200b_1G ================" && date
 sleep 30
 
 ##### mongodb 200b/op, total 1G
-echo "================ start mongodb 200b_1G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 200b_1G $FIELDLENGTH $FIELDCOUNT 100 671089 335544 335545
-echo "================ finish mongodb 200b_1G ================" && date
-sleep 30
+#echo "================ start mongodb 200b_1G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 200b_1G $FIELDLENGTH $FIELDCOUNT 100 671089 335544 335545
+#echo "================ finish mongodb 200b_1G ================" && date
+#sleep 30
 #
 #
 #
@@ -212,11 +212,11 @@ echo "================ finish leveldb 200b_16G ================" && date
 sleep 30
 
 ##### mongodb 200b/op, total 16G
-echo "================ start mongodb 200b_16G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 200b_16G $FIELDLENGTH $FIELDCOUNT 50 671089 5368709 5368709
-echo "================ finish mongodb 200b_16G ================" && date
-sleep 30
+#echo "================ start mongodb 200b_16G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 200b_16G $FIELDLENGTH $FIELDCOUNT 50 671089 5368709 5368709
+#echo "================ finish mongodb 200b_16G ================" && date
+#sleep 30
 
 
 
@@ -236,11 +236,11 @@ echo "================ finish leveldb 200b_256G ================" && date
 sleep 30
 
 ##### mongodb 200b/op, total 256G
-echo "================ start mongodb 200b_256G ================" && date
-cd ${TEST_TOOL_PATH}
-run mongodb 200b_256G $FIELDLENGTH $FIELDCOUNT 5 671089 85894846 85894846
-echo "================ finish mongodb 200b_256G ================" && date
-sleep 30
+#echo "================ start mongodb 200b_256G ================" && date
+#cd ${TEST_TOOL_PATH}
+#run mongodb 200b_256G $FIELDLENGTH $FIELDCOUNT 5 671089 85894846 85894846
+#echo "================ finish mongodb 200b_256G ================" && date
+#sleep 30
 
 
 
