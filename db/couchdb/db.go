@@ -426,7 +426,9 @@ func WatchBuildingIndexes(cli *couchdb.Client, timeout time.Duration) error {
 	for {
 		tasks, err := cli.ActiveTasks()
 		if err != nil {
-			return err
+			time.Sleep(5*time.Minute)
+			fmt.Println("get active task error, wait 5 min, remember to minus")
+			continue
 		}
 
 		if len(tasks) == 0 {
