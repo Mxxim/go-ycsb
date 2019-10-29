@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
 	"github.com/davegardnerisme/deephash"
+	"strconv"
 	"time"
 )
 
@@ -85,13 +86,14 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 	index := 0
 	for index <= num {
 		// Block0Tx0, Block0From0, Block0To0
+		indexString := strconv.Itoa(index)
 		txTemp := TransactionRetrievalDoc{
-			TxHash:  string(deephash.Hash(seed + "-" + Txsuffix + string(index))),
+			TxHash:  string(deephash.Hash(seed + "-" + Txsuffix + indexString)),
 			TxIndex: int64(index),
-			From:    string(deephash.Hash(seed + "-" + Fromsuffix + string(index))),
-			To:      string(deephash.Hash(seed + "-" + Tosuffix + string(index))),
+			From:    string(deephash.Hash(seed + "-" + Fromsuffix + indexString)),
+			To:      string(deephash.Hash(seed + "-" + Tosuffix + indexString)),
 		}
-		s := seed + "-" + Txsuffix + string(index)
+		s := seed + "-" + Txsuffix + indexString
 		fmt.Println(s)
 		fmt.Printf("String\t%x\n", deephash.Hash(s))
 		fmt.Println(string(deephash.Hash(s)))
@@ -113,7 +115,7 @@ func main() {
 
 	for index := 0; index <= blocknum; index++ {
 		// Block0, 10
-		txs := makeSomeTx(Blocksuffix + string(index), txnum)
+		txs := makeSomeTx(Blocksuffix + strconv.Itoa(index), txnum)
 		B := BlockRetrievalDoc{
 			BlockNumber:    uint64(index),
 			BlockWriteTime: time.Now().Unix(),
