@@ -63,7 +63,7 @@ func getDB() (*mongo.Client, error){
 
 	cliOpts := options.Client().ApplyURI(mongodbUriDefault)
 
-	cliOpts.SetAuth(options.Credential{AuthSource: mongodbAuthdbDefault, Username: mongodbUsername, Password: mongodbPassword})
+	// cliOpts.SetAuth(options.Credential{AuthSource: mongodbAuthdbDefault, Username: mongodbUsername, Password: mongodbPassword})
 
 	cli, err := mongo.Connect(ctx, cliOpts)
 	if err != nil {
@@ -91,6 +91,11 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 			From:    string(deephash.Hash(seed + "-" + Fromsuffix + string(index))),
 			To:      string(deephash.Hash(seed + "-" + Tosuffix + string(index))),
 		}
+		s := seed + "-" + Txsuffix + string(index)
+		fmt.Println(s)
+		fmt.Printf("String\t%x\n", deephash.Hash(s))
+		fmt.Println(string(deephash.Hash(s)))
+		fmt.Println("")
 		txs = append(txs, &txTemp)
 		index++
 	}
