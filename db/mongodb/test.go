@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
 	"github.com/davegardnerisme/deephash"
+	"math/rand"
 	"strconv"
 	"time"
 )
@@ -32,6 +33,8 @@ const (
 
 	txnum = 10
 	blocknum = 10
+
+	hashLength = 128
 )
 
 type TransactionRetrievalDoc struct {
@@ -88,16 +91,21 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 	for index <= num {
 		// Block0Tx0, Block0From0, Block0To0
 		indexString := strconv.Itoa(index)
+		TxHashByte := make([]byte, hashLength)
+		FromHashByte := make([]byte, hashLength)
+		ToHashByte := make([]byte, hashLength)
+		RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), TxHashByte)
+		RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), FromHashByte)
+		RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), ToHashByte)
 		txTemp := TransactionRetrievalDoc{
-			TxHash:  byteString(deephash.Hash(seed + "-" + Txsuffix + indexString)),
+			TxHash:  string(TxHashByte),
 			TxIndex: int64(index),
-			From:    byteString(deephash.Hash(seed + "-" + Fromsuffix + indexString)),
-			To:      byteString(deephash.Hash(seed + "-" + Tosuffix + indexString)),
+			From:    string(FromHashByte),
+			To:      string(ToHashByte),
 		}
 		s := seed + "-" + Txsuffix + indexString
 		fmt.Println(s)
-		fmt.Printf("String\t%x\n", deephash.Hash(s))
-		fmt.Println(byteString(deephash.Hash(s)))
+		fmt.Println(string(TxHashByte))
 		fmt.Println("")
 		txs = append(txs, &txTemp)
 		index++
@@ -133,12 +141,12 @@ func main() {
 
 }
 
-func byteString(p []byte) string {
-	for i := 0; i < len(p); i++ {
-		if p[i] == 0 {
-			return string(p[0:i])
-		}
+var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+// RandBytes fills the bytes with alphabetic characters randomly
+func RandBytes(r *rand.Rand, b []byte) {
+	for i := range b {
+		b[i] = letters[r.Intn(len(letters))]
 	}
-	return string(p)
 }
 
