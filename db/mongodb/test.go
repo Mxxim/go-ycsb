@@ -30,8 +30,8 @@ const (
 	Tosuffix = "To"
 	Blocksuffix = "Block"
 
-	txnum = 10
-	blocknum = 10
+	txnum = 250
+	blocknum = 10000
 
 
 	TxHashlength = 64
