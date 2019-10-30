@@ -31,7 +31,7 @@ const (
 	Blocksuffix = "Block"
 
 	txnum = 250
-	blocknum = 1000
+	blocknum = 3000
 
 
 	TxHashlength = 64
