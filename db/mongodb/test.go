@@ -225,6 +225,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 					block:   B.(*BlockRetrievalDoc2),
 				}
 			}
+			fmt.Printf("%+v\n", T)
 			_, err := coll.InsertOne(nil, T)
 			if err != nil {
 				fmt.Println("[S2] insert error")
