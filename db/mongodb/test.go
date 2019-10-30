@@ -214,7 +214,7 @@ func SolutionOne(coll *mongo.Collection) error{
 
 func SolutionTwo(coll *mongo.Collection) error{
 	var B interface{}
-	for bindex := 1; bindex <= blocknum; bindex++ {
+	for bindex := 78; bindex <= blocknum; bindex++ {
 		B = BlockRetrievalDoc2{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().UnixNano(),
@@ -292,28 +292,28 @@ func main() {
 	}
 	ns := command.ParseNamespace(mongodbNamespaceDefault)
 
-	coll := cli.Database(ns.DB).Collection(SolutionOneNoId)
-	err = SolutionOne(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//coll := cli.Database(ns.DB).Collection(SolutionOneNoId)
+	//err = SolutionOne(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
+	//
+	//coll = cli.Database(ns.DB).Collection(SolutionOneId)
+	//err = SolutionOne(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
+	//
+	//coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
+	//err = SolutionTwo(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
-	coll = cli.Database(ns.DB).Collection(SolutionOneId)
-	err = SolutionOne(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
-	err = SolutionTwo(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	coll = cli.Database(ns.DB).Collection(SolutionTwoId)
+	coll := cli.Database(ns.DB).Collection(SolutionTwoId)
 	err = SolutionTwo(coll)
 	if err != nil {
 		fmt.Println(err.Error())
