@@ -186,7 +186,7 @@ func SolutionOne(coll *mongo.Collection) error{
 		} else if coll.Name() == SolutionOneId {
 			B = BlockRetrievalDoc12{
 				BlockNumber:    uint64(index),
-				BlockWriteTime: time.Now().Unix(),
+				BlockWriteTime: time.Now().UnixNano(),
 				Txs:            txs,
 			}
 		}
@@ -222,10 +222,10 @@ func SolutionTwo(coll *mongo.Collection) error{
 				}
 			} else if coll.Name() == SolutionTwoNoId {
 				T = TransactionRetrievalDoc2{
-					TxHash:  string(TxHashByte),
+					TxHash:  "0x" + string(TxHashByte),
 					TxIndex: int64(tindex),
-					From:    string(FromHashByte),
-					To:      string(ToHashByte),
+					From:    "0x" + string(FromHashByte),
+					To:      "0x" + string(ToHashByte),
 					Extra: "hello, world",
 					Block:   B.(BlockRetrievalDoc2),
 				}
@@ -244,7 +244,7 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error{
 	for bindex := 1; bindex <= blocknum; bindex++ {
 		B := BlockRetrievalDoc3{
 			BlockNumber:    uint64(bindex),
-			BlockWriteTime: time.Now().Unix(),
+			BlockWriteTime: time.Now().UnixNano(),
 		}
 		_, err := Blockcoll.InsertOne(nil, B)
 		if err != nil {
@@ -256,10 +256,10 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error{
 			var T interface{}
 			TxHashByte, FromHashByte, ToHashByte := generateTx()
 			T = TransactionRetrievalDoc3{
-				TxHash:  string(TxHashByte),
+				TxHash:  "0x" + string(TxHashByte),
 				TxIndex: int64(tindex),
-				From:    string(FromHashByte),
-				To:      string(ToHashByte),
+				From:    "0x" + string(FromHashByte),
+				To:      "0x" + string(ToHashByte),
 				Extra: "hello, world",
 				BlockNumber: uint64(bindex),
 			}
