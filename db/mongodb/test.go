@@ -31,7 +31,7 @@ const (
 	Blocksuffix = "Block"
 
 	txnum = 250
-	blocknum = 10000
+	blocknum = 1000
 
 
 	TxHashlength = 64
@@ -50,7 +50,7 @@ const (
 // 方案一：采用嵌套的方式，区块里嵌套交易
 // @collection: blocks
 // @primary key:  blockNumber
-// @index: Txhash
+// @index: txs.txhash, BlockWriteTime；
 type TransactionRetrievalDoc struct {
 	TxHash string	`bson:"txHash" json:"txHash"`
 	TxIndex int64	`bson:"txIndex" json:"txIndex"`
@@ -71,6 +71,7 @@ type BlockRetrievalDoc12 struct {
 }
 
 // 方案二：采用嵌套的方式，交易里嵌套区块
+// @index: Txhash, block.BlockWriteTime；
 type TransactionRetrievalDoc2 struct {
 	TxHash string	`bson:"txHash" json:"txHash"`
 	TxIndex int64	`bson:"txIndex" json:"txIndex"`
@@ -94,6 +95,7 @@ type BlockRetrievalDoc2 struct {
 }
 
 // 方案三：采用引用的方式，存在交易集合与区块集合
+// index : txHash
 type TransactionRetrievalDoc3 struct {
 	TxHash string	`bson:"txHash" json:"txHash"`
 	TxIndex int64	`bson:"txIndex" json:"txIndex"`
@@ -103,6 +105,7 @@ type TransactionRetrievalDoc3 struct {
 	BlockNumber uint64 `bson:"blockNumber" json:"blockNumber"`
 }
 
+// index: BlockWriteTime
 type BlockRetrievalDoc3 struct {
 	BlockNumber uint64	`bson:"blockNumber" json:"blockNumber"`
 	BlockWriteTime int64 `bson:"writeTime" json:"writeTime"`
@@ -156,10 +159,10 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 	for index <= num {
 		TxHashByte, FromHashByte, ToHashByte := generateTx()
 		txTemp := TransactionRetrievalDoc{
-			TxHash:  string(TxHashByte),
+			TxHash:  "0x" + string(TxHashByte),
 			TxIndex: int64(index),
-			From:    string(FromHashByte),
-			To:      string(ToHashByte),
+			From:    "0x" + string(FromHashByte),
+			To:      "0x" + string(ToHashByte),
 			Extra: "hello, world",
 		}
 		txs = append(txs, &txTemp)
@@ -177,7 +180,7 @@ func SolutionOne(coll *mongo.Collection) error{
 		if coll.Name() == SolutionOneNoId {
 			B = BlockRetrievalDoc{
 				BlockNumber:    uint64(index),
-				BlockWriteTime: time.Now().Unix(),
+				BlockWriteTime: time.Now().UnixNano(),
 				Txs:            txs,
 			}
 		} else if coll.Name() == SolutionOneId {
@@ -202,7 +205,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 	for bindex := 1; bindex <= blocknum; bindex++ {
 		B = BlockRetrievalDoc2{
 			BlockNumber:    uint64(bindex),
-			BlockWriteTime: time.Now().Unix(),
+			BlockWriteTime: time.Now().UnixNano(),
 		}
 		// Block0, 10
 		for tindex := 1; tindex <= txnum; tindex++ {
@@ -210,10 +213,10 @@ func SolutionTwo(coll *mongo.Collection) error{
 			TxHashByte, FromHashByte, ToHashByte := generateTx()
 			if coll.Name() == SolutionTwoId {
 				T = TransactionRetrievalDoc22{
-					TxHash:  string(TxHashByte),
+					TxHash:  "0x" + string(TxHashByte),
 					TxIndex: int64(tindex),
-					From:    string(FromHashByte),
-					To:      string(ToHashByte),
+					From:    "0x" + string(FromHashByte),
+					To:      "0x" + string(ToHashByte),
 					Extra: "hello, world",
 					Block:   B.(BlockRetrievalDoc2),
 				}
@@ -326,4 +329,5 @@ func RandBytes(r *rand.Rand, b []byte) {
 	}
 }
 
+// col = db.getCollection("S1-ID");col.find().pretty()
 // col = db.getCollection("S1-ID");col.find().pretty()
