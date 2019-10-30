@@ -39,6 +39,7 @@ type TransactionRetrievalDoc struct {
 	TxIndex int64	`bson:"txIndex" json:"txIndex"`
 	From  string	`bson:"from" json:"from"`
 	To    string	`bson:"to" json:"to"`
+	Extra string    `bson:"extra" json:"extra"`
 }
 
 // @collection: blocks
@@ -88,15 +89,15 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 		// Block0Tx0, Block0From0, Block0To0
 		indexString := strconv.Itoa(index)
 		txTemp := TransactionRetrievalDoc{
-			TxHash:  string(deephash.Hash(seed + "-" + Txsuffix + indexString)),
+			TxHash:  byteString(deephash.Hash(seed + "-" + Txsuffix + indexString)),
 			TxIndex: int64(index),
-			From:    string(deephash.Hash(seed + "-" + Fromsuffix + indexString)),
-			To:      string(deephash.Hash(seed + "-" + Tosuffix + indexString)),
+			From:    byteString(deephash.Hash(seed + "-" + Fromsuffix + indexString)),
+			To:      byteString(deephash.Hash(seed + "-" + Tosuffix + indexString)),
 		}
 		s := seed + "-" + Txsuffix + indexString
 		fmt.Println(s)
 		fmt.Printf("String\t%x\n", deephash.Hash(s))
-		fmt.Println(string(deephash.Hash(s)))
+		fmt.Println(byteString(deephash.Hash(s)))
 		fmt.Println("")
 		txs = append(txs, &txTemp)
 		index++
@@ -130,5 +131,14 @@ func main() {
 
 	}
 
+}
+
+func byteString(p []byte) string {
+	for i := 0; i < len(p); i++ {
+		if p[i] == 0 {
+			return string(p[0:i])
+		}
+	}
+	return string(p)
 }
 
