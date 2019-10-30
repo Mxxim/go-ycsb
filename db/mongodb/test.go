@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
-	"github.com/davegardnerisme/deephash"
 	"math/rand"
 	"strconv"
 	"time"
@@ -35,8 +34,14 @@ const (
 	blocknum = 10
 
 	hashLength = 128
-)
 
+	SolutionOneId = "S1-ID"
+	SolutionOneNoId = "S1-NoID"
+)
+// 方案一：采用嵌套的方式，区块里嵌套交易
+// @collection: blocks
+// @primary key:  blockNumber
+// @index: blockNumber + txs.txIndex, blockWriteTime
 type TransactionRetrievalDoc struct {
 	TxHash string	`bson:"txHash" json:"txHash"`
 	TxIndex int64	`bson:"txIndex" json:"txIndex"`
@@ -44,15 +49,49 @@ type TransactionRetrievalDoc struct {
 	To    string	`bson:"to" json:"to"`
 	Extra string    `bson:"extra" json:"extra"`
 }
-
-// @collection: blocks
-// @primary key:  blockNumber
-// @index: blockNumber + txs.txIndex, blockWriteTime
 type BlockRetrievalDoc struct {
 	BlockNumber uint64	`bson:"blockNumber" json:"blockNumber"`
 	BlockWriteTime int64 `bson:"writeTime" json:"writeTime"`
 	Txs []*TransactionRetrievalDoc `bson:"txs" json:"txs"`
 }
+
+type BlockRetrievalDoc12 struct {
+	BlockNumber uint64	`bson:"_id" json:"_id"`
+	BlockWriteTime int64 `bson:"writeTime" json:"writeTime"`
+	Txs []*TransactionRetrievalDoc `bson:"txs" json:"txs"`
+}
+
+// 方案二：采用嵌套的方式，交易里嵌套区块
+type TransactionRetrievalDoc2 struct {
+	TxHash string	`bson:"txHash" json:"txHash"`
+	TxIndex int64	`bson:"txIndex" json:"txIndex"`
+	From  string	`bson:"from" json:"from"`
+	To    string	`bson:"to" json:"to"`
+	Extra string    `bson:"extra" json:"extra"`
+	block BlockRetrievalDoc2 `bson:"block" json:"block"`
+}
+
+type BlockRetrievalDoc2 struct {
+	BlockNumber uint64	`bson:"blockNumber" json:"blockNumber"`
+	BlockWriteTime int64 `bson:"writeTime" json:"writeTime"`
+}
+
+// 方案三：采用引用的方式，存在交易集合与区块集合
+type TransactionRetrievalDoc3 struct {
+	TxHash string	`bson:"txHash" json:"txHash"`
+	TxIndex int64	`bson:"txIndex" json:"txIndex"`
+	From  string	`bson:"from" json:"from"`
+	To    string	`bson:"to" json:"to"`
+	Extra string    `bson:"extra" json:"extra"`
+	blockNumber uint64 `bson:"blockNumber" json:"blockNumber"`
+}
+
+type BlockRetrievalDoc3 struct {
+	BlockNumber uint64	`bson:"blockNumber" json:"blockNumber"`
+	BlockWriteTime int64 `bson:"writeTime" json:"writeTime"`
+	TxHash string	`bson:"txHash" json:"txHash"`
+}
+
 
 func getDB() (*mongo.Client, error){
 	if _, err := connstring.Parse(mongodbUriDefault); err != nil {
@@ -102,6 +141,7 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 			TxIndex: int64(index),
 			From:    string(FromHashByte),
 			To:      string(ToHashByte),
+			Extra: "hello, world",
 		}
 		s := seed + "-" + Txsuffix + indexString
 		fmt.Println(s)
@@ -113,6 +153,34 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 	return txs
 }
 
+func SolutionOne(coll *mongo.Collection) error{
+
+	for index := 0; index <= blocknum; index++ {
+		// Block0, 10
+		txs := makeSomeTx(Blocksuffix + strconv.Itoa(index), txnum)
+		var B interface{}
+		if coll.Name() == SolutionOneNoId {
+			B = BlockRetrievalDoc{
+				BlockNumber:    uint64(index),
+				BlockWriteTime: time.Now().Unix(),
+				Txs:            txs,
+			}
+		} else if coll.Name() == SolutionOneId {
+			B = BlockRetrievalDoc12{
+				BlockNumber:    uint64(index),
+				BlockWriteTime: time.Now().Unix(),
+				Txs:            txs,
+			}
+		}
+		_, err := coll.InsertOne(nil, B)
+		if err != nil {
+			fmt.Println("[S1] insert error")
+			return err
+		}
+
+	}
+	return nil
+}
 func main() {
 	cli, err := getDB()
 	if err != nil {
@@ -120,24 +188,20 @@ func main() {
 		return
 	}
 	ns := command.ParseNamespace(mongodbNamespaceDefault)
-	coll := cli.Database(ns.DB).Collection(ns.Collection)
-
-	for index := 0; index <= blocknum; index++ {
-		// Block0, 10
-		txs := makeSomeTx(Blocksuffix + strconv.Itoa(index), txnum)
-		B := BlockRetrievalDoc{
-			BlockNumber:    uint64(index),
-			BlockWriteTime: time.Now().Unix(),
-			Txs:            txs,
-		}
-
-		_, err := coll.InsertOne(nil, B)
-		if err != nil {
-			fmt.Println("insert error")
-			return
-		}
-
+	coll := cli.Database(ns.DB).Collection(SolutionOneNoId)
+	err = SolutionOne(coll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
 	}
+
+	coll = cli.Database(ns.DB).Collection(SolutionOneId)
+	err = SolutionOne(coll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
 
 }
 
