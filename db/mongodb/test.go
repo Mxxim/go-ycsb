@@ -32,33 +32,25 @@ const (
 	Blocksuffix = "Block"
 
 	txnum = 250
-	blocknum = 3000
+	blocknum = 10000
 
 
 	TxHashlength = 64
 	AddressHashlength = 40
 
-	SolutionOneId = "S1-ID"
-	SolutionOneNoId = "S1-NoID"
+	SolutionOneId = "S1-ID-"
+	SolutionOneNoId = "S1-NoID-"
 
-	SolutionTwoId = "S2-ID"
-	SolutionTwoNoId = "S2-NoID"
+	SolutionTwoId = "S2-ID-"
+	SolutionTwoNoId = "S2-NoID-"
 
-	SolutionThreeTx = "S3-Tx"
-	SolutionThreeBlock = "S3-Block"
+	SolutionThreeTx = "S3-Tx-"
+	SolutionThreeBlock = "S3-Block-"
 
 )
 //
 
-// S1 index
-// col = db.getCollection("S1-NoID");col.createIndex( { "txs.txHash": 1} );col.createIndex( { "writeTime": 1} );
 
-// S2 index
-// col = db.getCollection("S2-NoID");col.createIndex( { "txHash": 1} );col.createIndex( { "block.writeTime": 1} );
-
-// S3 index
-// col = db.getCollection("S3-Tx");col.createIndex( { "txHash": 1} )
-// col = db.getCollection("S3-Block");col.createIndex( { "writeTime": 1} )
 
 // 方案一：采用嵌套的方式，区块里嵌套交易
 // @collection: blocks
@@ -294,41 +286,41 @@ func main() {
 	}
 	ns := command.ParseNamespace(mongodbNamespaceDefault)
 
-	//coll := cli.Database(ns.DB).Collection(SolutionOneNoId)
-	//err = SolutionOne(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
-	//
-	//coll = cli.Database(ns.DB).Collection(SolutionOneId)
-	//err = SolutionOne(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
-	//
-	//coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
-	//err = SolutionTwo(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
+	coll := cli.Database(ns.DB).Collection(SolutionOneNoId)
+	err = SolutionOne(coll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
-	coll := cli.Database(ns.DB).Collection(SolutionTwoId)
+	coll = cli.Database(ns.DB).Collection(SolutionOneId)
+	err = SolutionOne(coll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
 	err = SolutionTwo(coll)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	//Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
-	//Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
-	//err = SolutionThree(Txcoll, Blockcoll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
+	coll = cli.Database(ns.DB).Collection(SolutionTwoId)
+	err = SolutionTwo(coll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
+	Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
+	err = SolutionThree(Txcoll, Blockcoll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 
 
