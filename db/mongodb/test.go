@@ -213,7 +213,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 					From:    string(FromHashByte),
 					To:      string(ToHashByte),
 					Extra: "hello, world",
-					block:   B.(BlockRetrievalDoc2),
+					Block:   B.(BlockRetrievalDoc2),
 				}
 			} else if coll.Name() == SolutionTwoNoId {
 				T = TransactionRetrievalDoc2{
@@ -222,10 +222,9 @@ func SolutionTwo(coll *mongo.Collection) error{
 					From:    string(FromHashByte),
 					To:      string(ToHashByte),
 					Extra: "hello, world",
-					block:   B.(BlockRetrievalDoc2),
+					Block:   B.(BlockRetrievalDoc2),
 				}
 			}
-			fmt.Printf("%+v\n", T)
 			_, err := coll.InsertOne(nil, T)
 			if err != nil {
 				fmt.Println("[S2] insert error")
@@ -257,7 +256,7 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error{
 				From:    string(FromHashByte),
 				To:      string(ToHashByte),
 				Extra: "hello, world",
-				blockNumber: uint64(bindex),
+				BlockNumber: uint64(bindex),
 			}
 			_, err := Txcoll.InsertOne(nil, T)
 			if err != nil {
