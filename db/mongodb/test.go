@@ -75,7 +75,7 @@ type TransactionRetrievalDoc2 struct {
 	From  string	`bson:"from" json:"from"`
 	To    string	`bson:"to" json:"to"`
 	Extra string    `bson:"extra" json:"extra"`
-	block *BlockRetrievalDoc2 `bson:"block" json:"block"`
+	block BlockRetrievalDoc2 `bson:"block" json:"block"`
 }
 type TransactionRetrievalDoc22 struct {
 	TxHash string	`bson:"_id" json:"_id"`
@@ -83,7 +83,7 @@ type TransactionRetrievalDoc22 struct {
 	From  string	`bson:"from" json:"from"`
 	To    string	`bson:"to" json:"to"`
 	Extra string    `bson:"extra" json:"extra"`
-	block *BlockRetrievalDoc2 `bson:"block" json:"block"`
+	block BlockRetrievalDoc2 `bson:"block" json:"block"`
 }
 
 type BlockRetrievalDoc2 struct {
@@ -198,7 +198,7 @@ func SolutionOne(coll *mongo.Collection) error{
 func SolutionTwo(coll *mongo.Collection) error{
 	var B interface{}
 	for bindex := 1; bindex <= blocknum; bindex++ {
-		B = &BlockRetrievalDoc2{
+		B = BlockRetrievalDoc2{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().Unix(),
 		}
@@ -213,7 +213,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 					From:    string(FromHashByte),
 					To:      string(ToHashByte),
 					Extra: "hello, world",
-					block:   B.(*BlockRetrievalDoc2),
+					block:   B.(BlockRetrievalDoc2),
 				}
 			} else if coll.Name() == SolutionTwoNoId {
 				T = TransactionRetrievalDoc2{
@@ -222,7 +222,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 					From:    string(FromHashByte),
 					To:      string(ToHashByte),
 					Extra: "hello, world",
-					block:   B.(*BlockRetrievalDoc2),
+					block:   B.(BlockRetrievalDoc2),
 				}
 			}
 			fmt.Printf("%+v\n", T)
