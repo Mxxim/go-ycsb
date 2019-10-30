@@ -196,9 +196,9 @@ func SolutionOne(coll *mongo.Collection) error{
 }
 
 func SolutionTwo(coll *mongo.Collection) error{
-
+	var B interface{}
 	for bindex := 1; bindex <= blocknum; bindex++ {
-		B := &BlockRetrievalDoc2{
+		B = &BlockRetrievalDoc2{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().Unix(),
 		}
@@ -213,7 +213,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 					From:    string(FromHashByte),
 					To:      string(ToHashByte),
 					Extra: "hello, world",
-					block:   B,
+					block:   B.(*BlockRetrievalDoc2),
 				}
 			} else if coll.Name() == SolutionTwoNoId {
 				T = TransactionRetrievalDoc2{
@@ -222,7 +222,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 					From:    string(FromHashByte),
 					To:      string(ToHashByte),
 					Extra: "hello, world",
-					block:   B,
+					block:   B.(*BlockRetrievalDoc2),
 				}
 			}
 			_, err := coll.InsertOne(nil, T)
