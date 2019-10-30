@@ -169,7 +169,7 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 	var txs []*TransactionRetrievalDoc
 	index := 1
 	for index <= num {
-		TxHashByte, FromHashByte, ToHashByte := generateTx()
+		TxHashByte, FromHashByte, ToHashByte := generateTx(index)
 		txTemp := TransactionRetrievalDoc{
 			TxHash:  "0x" + string(TxHashByte),
 			TxIndex: int64(index),
