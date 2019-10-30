@@ -150,7 +150,7 @@ func generateTx() ([]byte, []byte, []byte){
 
 func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 	var txs []*TransactionRetrievalDoc
-	index := 0
+	index := 1
 	for index <= num {
 		TxHashByte, FromHashByte, ToHashByte := generateTx()
 		txTemp := TransactionRetrievalDoc{
@@ -168,7 +168,7 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc{
 
 func SolutionOne(coll *mongo.Collection) error{
 
-	for index := 0; index <= blocknum; index++ {
+	for index := 1; index <= blocknum; index++ {
 		// Block0, 10
 		txs := makeSomeTx(Blocksuffix + strconv.Itoa(index), txnum)
 		var B interface{}
@@ -197,13 +197,13 @@ func SolutionOne(coll *mongo.Collection) error{
 
 func SolutionTwo(coll *mongo.Collection) error{
 
-	for bindex := 0; bindex <= blocknum; bindex++ {
+	for bindex := 1; bindex <= blocknum; bindex++ {
 		B := BlockRetrievalDoc2{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().Unix(),
 		}
 		// Block0, 10
-		for tindex := 0; tindex <= txnum; tindex++ {
+		for tindex := 1; tindex <= txnum; tindex++ {
 			var T interface{}
 			TxHashByte, FromHashByte, ToHashByte := generateTx()
 			if coll.Name() == SolutionTwoId {
@@ -236,7 +236,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 }
 
 func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error{
-	for bindex := 0; bindex <= blocknum; bindex++ {
+	for bindex := 1; bindex <= blocknum; bindex++ {
 		B := BlockRetrievalDoc3{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().Unix(),
@@ -247,7 +247,7 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error{
 			return err
 		}
 
-		for tindex := 0; tindex <= txnum; tindex++ {
+		for tindex := 1; tindex <= txnum; tindex++ {
 			var T interface{}
 			TxHashByte, FromHashByte, ToHashByte := generateTx()
 			T = TransactionRetrievalDoc3{
@@ -324,3 +324,4 @@ func RandBytes(r *rand.Rand, b []byte) {
 	}
 }
 
+// col = db.getCollection("S1-ID");col.find().pretty()
