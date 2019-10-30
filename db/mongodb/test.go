@@ -75,7 +75,7 @@ type TransactionRetrievalDoc2 struct {
 	From  string	`bson:"from" json:"from"`
 	To    string	`bson:"to" json:"to"`
 	Extra string    `bson:"extra" json:"extra"`
-	block BlockRetrievalDoc2 `bson:"block" json:"block"`
+	Block BlockRetrievalDoc2 `bson:"block" json:"block"`
 }
 type TransactionRetrievalDoc22 struct {
 	TxHash string	`bson:"_id" json:"_id"`
@@ -83,7 +83,7 @@ type TransactionRetrievalDoc22 struct {
 	From  string	`bson:"from" json:"from"`
 	To    string	`bson:"to" json:"to"`
 	Extra string    `bson:"extra" json:"extra"`
-	block BlockRetrievalDoc2 `bson:"block" json:"block"`
+	Block BlockRetrievalDoc2 `bson:"block" json:"block"`
 }
 
 type BlockRetrievalDoc2 struct {
@@ -98,7 +98,7 @@ type TransactionRetrievalDoc3 struct {
 	From  string	`bson:"from" json:"from"`
 	To    string	`bson:"to" json:"to"`
 	Extra string    `bson:"extra" json:"extra"`
-	blockNumber uint64 `bson:"blockNumber" json:"blockNumber"`
+	BlockNumber uint64 `bson:"blockNumber" json:"blockNumber"`
 }
 
 type BlockRetrievalDoc3 struct {
