@@ -8,7 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"strconv"
 	"time"
 )
@@ -159,9 +160,9 @@ func generateTx(seed int) ([]byte, []byte, []byte){
 	TxHashByte := make([]byte, TxHashlength)
 	FromHashByte := make([]byte, AddressHashlength)
 	ToHashByte := make([]byte, AddressHashlength)
-	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano()+ int64(seed))), TxHashByte)
-	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), FromHashByte)
-	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), ToHashByte)
+	RandBytes(TxHashByte)
+	RandBytes(FromHashByte)
+	RandBytes(ToHashByte)
 	return TxHashByte, FromHashByte, ToHashByte
 }
 
@@ -321,13 +322,13 @@ func main() {
 		return
 	}
 
-	Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
-	Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
-	err = SolutionThree(Txcoll, Blockcoll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
+	//Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
+	//err = SolutionThree(Txcoll, Blockcoll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
 
 
@@ -336,9 +337,11 @@ func main() {
 var letters = []byte("1234567890abcdef")
 
 // RandBytes fills the bytes with alphabetic characters randomly
-func RandBytes(r *rand.Rand, b []byte) {
+func RandBytes(b []byte) {
 	for i := range b {
-		b[i] = letters[r.Intn(len(letters))]
+		bi := new(big.Int).SetInt64(int64(len(letters)))
+		index, _ := rand.Int(rand.Reader,bi)
+		b[i] = letters[index.Int64()]
 	}
 }
 
