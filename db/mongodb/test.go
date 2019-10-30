@@ -33,7 +33,9 @@ const (
 	txnum = 10
 	blocknum = 10
 
-	hashLength = 128
+
+	TxHashlength = 64
+	AddressHashlength = 40
 
 	SolutionOneId = "S1-ID"
 	SolutionOneNoId = "S1-NoID"
@@ -139,9 +141,9 @@ func getDB() (*mongo.Client, error){
 }
 
 func generateTx() ([]byte, []byte, []byte){
-	TxHashByte := make([]byte, hashLength)
-	FromHashByte := make([]byte, hashLength)
-	ToHashByte := make([]byte, hashLength)
+	TxHashByte := make([]byte, TxHashlength)
+	FromHashByte := make([]byte, AddressHashlength)
+	ToHashByte := make([]byte, AddressHashlength)
 	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), TxHashByte)
 	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), FromHashByte)
 	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), ToHashByte)
@@ -315,7 +317,7 @@ func main() {
 
 }
 
-var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var letters = []byte("1234567890abcdef")
 
 // RandBytes fills the bytes with alphabetic characters randomly
 func RandBytes(r *rand.Rand, b []byte) {
