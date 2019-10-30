@@ -47,6 +47,18 @@ const (
 	SolutionThreeBlock = "S3-Block"
 
 )
+//
+
+// S1 index
+// col = db.getCollection("S1-NoID");col.createIndex( { "txs.txHash": 1} );col.createIndex( { "writeTime": 1} );
+
+// S2 index
+// col = db.getCollection("S2-NoID");col.createIndex( { "txHash": 1} );col.createIndex( { "block.writeTime": 1} );
+
+// S3 index
+// col = db.getCollection("S3-Tx");col.createIndex( { "txHash": 1} )
+// col = db.getCollection("S3-Block");col.createIndex( { "writeTime": 1} )
+
 // 方案一：采用嵌套的方式，区块里嵌套交易
 // @collection: blocks
 // @primary key:  blockNumber
@@ -143,11 +155,11 @@ func getDB() (*mongo.Client, error){
 	return cli, nil
 }
 
-func generateTx() ([]byte, []byte, []byte){
+func generateTx(seed int) ([]byte, []byte, []byte){
 	TxHashByte := make([]byte, TxHashlength)
 	FromHashByte := make([]byte, AddressHashlength)
 	ToHashByte := make([]byte, AddressHashlength)
-	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), TxHashByte)
+	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano()+ int64(seed))), TxHashByte)
 	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), FromHashByte)
 	RandBytes(rand.New(rand.NewSource(time.Now().UnixNano())), ToHashByte)
 	return TxHashByte, FromHashByte, ToHashByte
@@ -210,7 +222,7 @@ func SolutionTwo(coll *mongo.Collection) error{
 		// Block0, 10
 		for tindex := 1; tindex <= txnum; tindex++ {
 			var T interface{}
-			TxHashByte, FromHashByte, ToHashByte := generateTx()
+			TxHashByte, FromHashByte, ToHashByte := generateTx(tindex)
 			if coll.Name() == SolutionTwoId {
 				T = TransactionRetrievalDoc22{
 					TxHash:  "0x" + string(TxHashByte),
@@ -254,7 +266,7 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error{
 
 		for tindex := 1; tindex <= txnum; tindex++ {
 			var T interface{}
-			TxHashByte, FromHashByte, ToHashByte := generateTx()
+			TxHashByte, FromHashByte, ToHashByte := generateTx(tindex)
 			T = TransactionRetrievalDoc3{
 				TxHash:  "0x" + string(TxHashByte),
 				TxIndex: int64(tindex),
@@ -329,5 +341,4 @@ func RandBytes(r *rand.Rand, b []byte) {
 	}
 }
 
-// col = db.getCollection("S1-ID");col.find().pretty()
 // col = db.getCollection("S1-ID");col.find().pretty()
