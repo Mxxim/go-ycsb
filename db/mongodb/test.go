@@ -211,10 +211,10 @@ func SolutionOne(coll *mongo.Collection) error{
 	}
 	return nil
 }
-
+//  col = db.getCollection("S2-ID");col.find({"_id": ""}).pretty()
 func SolutionTwo(coll *mongo.Collection) error{
 	var B interface{}
-	for bindex := 78; bindex <= blocknum; bindex++ {
+	for bindex := 1; bindex <= blocknum; bindex++ {
 		B = BlockRetrievalDoc2{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().UnixNano(),
@@ -244,8 +244,9 @@ func SolutionTwo(coll *mongo.Collection) error{
 			}
 			_, err := coll.InsertOne(nil, T)
 			if err != nil {
-				fmt.Println("[S2] insert error")
-				return err
+				fmt.Println("[S2] insert error, continue")
+				fmt.Printf(err.Error())
+				fmt.Printf("%+v\n", T)
 			}
 		}
 	}
