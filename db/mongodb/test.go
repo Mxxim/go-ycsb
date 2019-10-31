@@ -174,7 +174,8 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc {
 }
 
 func SolutionOne(coll *mongo.Collection) error {
-
+	fmt.Println("start insert SolutionOne data...")
+	now := time.Now()
 	for index := start; index <= blocknum; index++ {
 		// Block0, 10
 		txs := makeSomeTx(Blocksuffix+strconv.Itoa(index), txnum)
@@ -194,16 +195,19 @@ func SolutionOne(coll *mongo.Collection) error {
 		}
 		_, err := coll.InsertOne(nil, B)
 		if err != nil {
-			fmt.Println("[S1] insert error")
-			return err
+			fmt.Printf("[S1] insert error, now number is %v, err: %v\n", index, err.Error())
+			continue
 		}
 
 	}
+	fmt.Printf("finish SolutionOne, time used: %v\n", time.Now().Sub(now))
 	return nil
 }
 
 //  col = db.getCollection("S2-ID");col.find({"_id": ""}).pretty()
 func SolutionTwo(coll *mongo.Collection) error {
+	fmt.Println("start insert SolutionTwo data...")
+	now := time.Now()
 	var B interface{}
 	for bindex := start; bindex <= blocknum; bindex++ {
 		B = BlockRetrievalDoc2{
@@ -235,16 +239,19 @@ func SolutionTwo(coll *mongo.Collection) error {
 			}
 			_, err := coll.InsertOne(nil, T)
 			if err != nil {
-				fmt.Println("[S2] insert error, continue")
-				fmt.Printf(err.Error())
+				fmt.Printf("[S2] insert error, now number is %v, err: %v\n", bindex, err.Error())
 				fmt.Printf("%+v\n", T)
+				continue
 			}
 		}
 	}
+	fmt.Printf("finish SolutionTwo, time used: %v\n", time.Now().Sub(now))
 	return nil
 }
 
 func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error {
+	fmt.Println("start insert SolutionThree data...")
+	now := time.Now()
 	for bindex := start; bindex <= blocknum; bindex++ {
 		B := BlockRetrievalDoc3{
 			BlockNumber:    uint64(bindex),
@@ -252,8 +259,8 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error 
 		}
 		_, err := Blockcoll.InsertOne(nil, B)
 		if err != nil {
-			fmt.Println("[S3] insert block error")
-			return err
+			fmt.Printf("[S3] insert block error, now number is %v, err: %v\n", bindex, err.Error())
+			continue
 		}
 
 		for tindex := 1; tindex <= txnum; tindex++ {
@@ -269,11 +276,12 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error 
 			}
 			_, err := Txcoll.InsertOne(nil, T)
 			if err != nil {
-				fmt.Println("[S3] insert tx error")
-				return err
+				fmt.Printf("[S3] insert tx error, now number is %v, err: %v\n", bindex, err.Error())
+				continue
 			}
 		}
 	}
+	fmt.Printf("finish SolutionThree, time used: %v\n", time.Now().Sub(now))
 	return nil
 }
 func main() {
