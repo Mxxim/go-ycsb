@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 	"go.mongodb.org/mongo-driver/x/network/command"
 	"go.mongodb.org/mongo-driver/x/network/connstring"
 	"math/big"
@@ -31,9 +32,10 @@ const (
 	Tosuffix    = "To"
 	Blocksuffix = "Block"
 
-	start    = 1
-	txnum    = 250
-	blocknum = 10000
+	start       = 1
+	txnum       = 500
+	blocknum    = 50000
+	createIndex = true
 
 	TxHashlength      = 64
 	AddressHashlength = 40
@@ -174,8 +176,45 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc {
 }
 
 func SolutionOne(coll *mongo.Collection) error {
-	fmt.Println("start insert SolutionOne data...")
+	fmt.Println("---- start insert SolutionOne data... ----")
 	now := time.Now()
+
+	if createIndex {
+		fmt.Printf("create index ...., now time is %v\n", time.Now())
+		start := time.Now()
+
+		// 创建非组合索引
+		var indexModels []mongo.IndexModel
+		var bsonxD bsonx.Doc
+		bsonxD = []bsonx.Elem{bsonx.Elem{"writeTime", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.txHash", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.from", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.to", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView := coll.Indexes()
+		_, err := indexView.CreateMany(context.Background(), indexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Create index time used: %v\n", time.Now().Sub(start))
+	}
+
 	for index := start; index <= blocknum; index++ {
 		// Block0, 10
 		txs := makeSomeTx(Blocksuffix+strconv.Itoa(index), txnum)
@@ -206,7 +245,7 @@ func SolutionOne(coll *mongo.Collection) error {
 
 //  col = db.getCollection("S2-ID");col.find({"_id": ""}).pretty()
 func SolutionTwo(coll *mongo.Collection) error {
-	fmt.Println("start insert SolutionTwo data...")
+	fmt.Println("---- start insert SolutionTwo data... ----")
 	now := time.Now()
 	var B interface{}
 	for bindex := start; bindex <= blocknum; bindex++ {
@@ -250,7 +289,7 @@ func SolutionTwo(coll *mongo.Collection) error {
 }
 
 func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error {
-	fmt.Println("start insert SolutionThree data...")
+	fmt.Println("---- start insert SolutionThree data... ----")
 	now := time.Now()
 	for bindex := start; bindex <= blocknum; bindex++ {
 		B := BlockRetrievalDoc3{
@@ -292,41 +331,41 @@ func main() {
 	}
 	ns := command.ParseNamespace(mongodbNamespaceDefault)
 
-	coll := cli.Database(ns.DB).Collection(SolutionOneNoId)
+	coll := cli.Database(ns.DB).Collection(SolutionOneId)
 	err = SolutionOne(coll)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
 
-	coll = cli.Database(ns.DB).Collection(SolutionOneId)
-	err = SolutionOne(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//coll = cli.Database(ns.DB).Collection(SolutionOneNoId)
+	//err = SolutionOne(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
-	coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
-	err = SolutionTwo(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
+	//err = SolutionTwo(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
+	//
+	//coll = cli.Database(ns.DB).Collection(SolutionTwoId)
+	//err = SolutionTwo(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
-	coll = cli.Database(ns.DB).Collection(SolutionTwoId)
-	err = SolutionTwo(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
-	Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
-	err = SolutionThree(Txcoll, Blockcoll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
+	//Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
+	//err = SolutionThree(Txcoll, Blockcoll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
 }
 
