@@ -24,7 +24,7 @@ const (
 	mongodbIndexs    = "mongodb.indexs"
 
 	mongodbUriDefault       = "mongodb://127.0.0.1:27017"
-	mongodbNamespaceDefault = "ycsb.ycsb"
+	mongodbNamespaceDefault = "flato.flato"
 	mongodbAuthdbDefault    = "admin"
 
 	Txsuffix    = "tx"
@@ -102,7 +102,7 @@ type BlockRetrievalDoc2 struct {
 // 方案三：采用引用的方式，存在交易集合与区块集合
 // index : txHash
 type TransactionRetrievalDoc3 struct {
-	TxHash      string `bson:"txHash" json:"txHash"`
+	TxHash      string `bson:"_id" json:"txHash"`
 	TxIndex     int64  `bson:"txIndex" json:"txIndex"`
 	From        string `bson:"from" json:"from"`
 	To          string `bson:"to" json:"to"`
@@ -112,7 +112,7 @@ type TransactionRetrievalDoc3 struct {
 
 // index: BlockWriteTime
 type BlockRetrievalDoc3 struct {
-	BlockNumber    uint64 `bson:"blockNumber" json:"blockNumber"`
+	BlockNumber    uint64 `bson:"_id" json:"blockNumber"`
 	BlockWriteTime int64  `bson:"writeTime" json:"writeTime"`
 }
 
@@ -176,7 +176,7 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc {
 }
 
 func SolutionOne(coll *mongo.Collection) error {
-	fmt.Println("---- start insert SolutionOne data... ----")
+	fmt.Printf("---- start insert SolutionOne data...createIndex = %v\n----", createIndex)
 	now := time.Now()
 
 	if createIndex {
@@ -289,8 +289,56 @@ func SolutionTwo(coll *mongo.Collection) error {
 }
 
 func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error {
-	fmt.Println("---- start insert SolutionThree data... ----")
+	fmt.Printf("---- start insert SolutionThree data... createIndex = %v\n----", createIndex)
 	now := time.Now()
+	if createIndex {
+		fmt.Printf("create txColl index ...., now time is %v\n", time.Now())
+		start := time.Now()
+
+		// 创建非组合索引
+		var indexModels []mongo.IndexModel
+		var bsonxD bsonx.Doc
+		bsonxD = []bsonx.Elem{bsonx.Elem{"blockNumber", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"from", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"to", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView := Txcoll.Indexes()
+		_, err := indexView.CreateMany(context.Background(), indexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Create txColl index time used: %v\n", time.Now().Sub(start))
+
+		fmt.Printf("create blockColl index ...., now time is %v\n", time.Now())
+		start = time.Now()
+
+		var blockIndexModels []mongo.IndexModel
+		bsonxD = []bsonx.Elem{bsonx.Elem{"writeTime", bsonx.Int32(1)}}
+		blockIndexModels = append(blockIndexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView = Blockcoll.Indexes()
+		_, err = indexView.CreateMany(context.Background(), blockIndexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Createb lockColl index time used: %v\n", time.Now().Sub(start))
+	}
+
 	for bindex := start; bindex <= blocknum; bindex++ {
 		B := BlockRetrievalDoc3{
 			BlockNumber:    uint64(bindex),
@@ -331,12 +379,12 @@ func main() {
 	}
 	ns := command.ParseNamespace(mongodbNamespaceDefault)
 
-	coll := cli.Database(ns.DB).Collection(SolutionOneId)
-	err = SolutionOne(coll)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	//coll := cli.Database(ns.DB).Collection(SolutionOneId)
+	//err = SolutionOne(coll)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
 	//coll = cli.Database(ns.DB).Collection(SolutionOneNoId)
 	//err = SolutionOne(coll)
@@ -359,13 +407,13 @@ func main() {
 	//	return
 	//}
 
-	//Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
-	//Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
-	//err = SolutionThree(Txcoll, Blockcoll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
+	Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
+	Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
+	err = SolutionThree(Txcoll, Blockcoll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 }
 
