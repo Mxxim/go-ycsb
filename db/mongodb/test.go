@@ -8,10 +8,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
-	"go.mongodb.org/mongo-driver/x/network/command"
-	"go.mongodb.org/mongo-driver/x/network/connstring"
+	//"go.mongodb.org/mongo-driver/x/network/command"
+	//"go.mongodb.org/mongo-driver/x/network/connstring"
 	"math/big"
-	"strconv"
+	"sync"
 	"time"
 )
 
@@ -27,11 +27,6 @@ const (
 	mongodbNamespaceDefault = "flato.flato"
 	mongodbAuthdbDefault    = "admin"
 
-	Txsuffix    = "tx"
-	Fromsuffix  = "From"
-	Tosuffix    = "To"
-	Blocksuffix = "Block"
-
 	start       = 1
 	txnum       = 500
 	blocknum    = 50000
@@ -40,90 +35,117 @@ const (
 	TxHashlength      = 64
 	AddressHashlength = 40
 
-	SolutionOneId   = "S1-ID-"
-	SolutionOneNoId = "S1-NoID-"
+	SolutionOneBlocks = "S1-blocks"
 
-	SolutionTwoId   = "S2-ID-"
-	SolutionTwoNoId = "S2-NoID-"
+	SolutionTwoBlocks       = "S2-blocks"
+	SolutionTwoTransactions = "S2-transactions"
 
-	SolutionThreeTx    = "S3-Tx-"
-	SolutionThreeBlock = "S3-Block-"
+	SolutionThreeBlocks       = "S3-blocks"
+	SolutionThreeTransactions = "S3-transactions"
+
+	SolutionFourBlocks       = "S4-blocks"
+	SolutionFourTransactions = "S4-transactions"
+
+	SolutionFiveBlocks       = "S5-blocks"
+	SolutionFiveTransactions = "S5-transactions"
 )
-
-//
 
 // 方案一：采用嵌套的方式，区块里嵌套交易
 // @collection: blocks
 // @primary key:  blockNumber
-// @index: txs.txhash, BlockWriteTime；
-type TransactionRetrievalDoc struct {
-	TxHash  string `bson:"txHash" json:"txHash"`
-	TxIndex int64  `bson:"txIndex" json:"txIndex"`
-	From    string `bson:"from" json:"from"`
-	To      string `bson:"to" json:"to"`
-	Extra   string `bson:"extra" json:"extra"`
-}
+// @index: writeTime, txs.hash, txs.from, txs.to；
 type BlockRetrievalDoc struct {
-	BlockNumber    uint64                     `bson:"blockNumber" json:"blockNumber"`
-	BlockWriteTime int64                      `bson:"writeTime" json:"writeTime"`
-	Txs            []*TransactionRetrievalDoc `bson:"txs" json:"txs"`
-}
-
-type BlockRetrievalDoc12 struct {
 	BlockNumber    uint64                     `bson:"_id" json:"_id"`
 	BlockWriteTime int64                      `bson:"writeTime" json:"writeTime"`
-	Txs            []*TransactionRetrievalDoc `bson:"txs" json:"txs"`
+	Txs            []*TransactionRetrievalDoc `bson:"txs,omitempty" json:"txs,omitempty"`
 }
 
-// 方案二：采用嵌套的方式，交易里嵌套区块
-// @index: Txhash, block.BlockWriteTime；
+type TransactionRetrievalDoc struct {
+	TxHash  string `bson:"hash" json:"hash"`
+	TxIndex int64  `bson:"index" json:"index"`
+	From    string `bson:"from" json:"from"`
+	To      string `bson:"to" json:"to"`
+	Extra   string `bson:"extra,omitempty" json:"extra,omitempty"`
+}
+
+// **方案二：采用引用的方式，交易集合和区块集合，_id不为交易哈希
+// @collection: transactions
+// @primary key: _id
+// @index: hash, (blkNum), from, to
+// 已知blockNumber可以直接去filelog得到所有信息了，不需要在索引数据库里查询，因此没必要创建blockNumber二层索引
 type TransactionRetrievalDoc2 struct {
-	TxHash  string             `bson:"txHash" json:"txHash"`
-	TxIndex int64              `bson:"txIndex" json:"txIndex"`
-	From    string             `bson:"from" json:"from"`
-	To      string             `bson:"to" json:"to"`
-	Extra   string             `bson:"extra" json:"extra"`
-	Block   BlockRetrievalDoc2 `bson:"block" json:"block"`
-}
-type TransactionRetrievalDoc22 struct {
-	TxHash  string             `bson:"_id" json:"_id"`
-	TxIndex int64              `bson:"txIndex" json:"txIndex"`
-	From    string             `bson:"from" json:"from"`
-	To      string             `bson:"to" json:"to"`
-	Extra   string             `bson:"extra" json:"extra"`
-	Block   BlockRetrievalDoc2 `bson:"block" json:"block"`
-}
-
-type BlockRetrievalDoc2 struct {
-	BlockNumber    uint64 `bson:"blockNumber" json:"blockNumber"`
-	BlockWriteTime int64  `bson:"writeTime" json:"writeTime"`
-}
-
-// 方案三：采用引用的方式，存在交易集合与区块集合
-// index : txHash
-type TransactionRetrievalDoc3 struct {
-	TxHash      string `bson:"_id" json:"txHash"`
-	TxIndex     int64  `bson:"txIndex" json:"txIndex"`
+	TxHash      string `bson:"hash" json:"hash"`
+	TxIndex     int64  `bson:"index" json:"index"`
 	From        string `bson:"from" json:"from"`
 	To          string `bson:"to" json:"to"`
-	Extra       string `bson:"extra" json:"extra"`
-	BlockNumber uint64 `bson:"blockNumber" json:"blockNumber"`
+	Extra       string `bson:"extra,omitempty" json:"extra,omitempty"`
+	BlockNumber uint64 `bson:"blkNum" json:"blkNum"`
 }
 
-// index: BlockWriteTime
-type BlockRetrievalDoc3 struct {
+// @collection: blocks
+// @primary key: blockNumber
+// @index: writeTime
+type BlockRetrievalDoc23 struct {
 	BlockNumber    uint64 `bson:"_id" json:"blockNumber"`
 	BlockWriteTime int64  `bson:"writeTime" json:"writeTime"`
 }
 
+// 方案三：采用引用的方式，交易集合和区块集合，_id为交易哈希
+// @collection: transactions
+// @primary key: txHash
+// @index: (blkNum), from, to
+type TransactionRetrievalDoc3 struct {
+	TxHash      string `bson:"_id" json:"txHash"`
+	TxIndex     int64  `bson:"index" json:"index"`
+	From        string `bson:"from" json:"from"`
+	To          string `bson:"to" json:"to"`
+	Extra       string `bson:"extra,omitempty" json:"extra,omitempty"`
+	BlockNumber uint64 `bson:"blkNum" json:"blkNum"`
+}
+
+// 方案四：采用引用的方式，交易集合和区块集合，_id不为交易哈希
+// @collection: transactions
+// @primary key: _id
+// @index: hash, from, to
+type TransactionRetrievalDoc4 struct {
+	TxHash      string `bson:"hash" json:"hash"`
+	TxIndex     int64  `bson:"index" json:index"`
+	From        string `bson:"from" json:"from"`
+	To          string `bson:"to" json:"to"`
+	Extra       string `bson:"extra,omitempty" json:"extra,omitempty"`
+	BlockNumber uint64 `bson:"blkNum" json:"blkNum"`
+}
+
+// @collection: blocks
+// @primary key: blockNumber
+// @index: writeTime
+type BlockRetrievalDoc45 struct {
+	BlockNumber    uint64   `bson:"_id" json:"blockNumber"`
+	BlockWriteTime int64    `bson:"writeTime" json:"writeTime"`
+	Txs            []string `bson:"txs,omitempty" json:"txs,omitempty"`
+}
+
+// 方案五：采用引用的方式，交易集合和区块集合，_id为交易哈希
+// @collection: transactions
+// @primary key: txHash
+// @index: from, to
+type TransactionRetrievalDoc5 struct {
+	TxHash      string `bson:"_id" json:"txHash"`
+	TxIndex     int64  `bson:"index" json:"index"`
+	From        string `bson:"from" json:"from"`
+	To          string `bson:"to" json:"to"`
+	Extra       string `bson:"extra,omitempty" json:"extra,omitempty"`
+	BlockNumber uint64 `bson:"blkNum" json:"blkNum"`
+}
+
 func getDB() (*mongo.Client, error) {
-	if _, err := connstring.Parse(mongodbUriDefault); err != nil {
-		return nil, errors.New("[connection error] parse URL error")
-	}
-	ns := command.ParseNamespace(mongodbNamespaceDefault)
-	if err := ns.Validate(); err != nil {
-		return nil, errors.New("[connection error] ns validate error")
-	}
+	//if _, err := connstring.Parse(mongodbUriDefault); err != nil {
+	//	return nil, errors.New("[connection error] parse URL error")
+	//}
+	//ns := command.ParseNamespace(mongodbNamespaceDefault)
+	//if err := ns.Validate(); err != nil {
+	//	return nil, errors.New("[connection error] ns validate error")
+	//}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -147,21 +169,46 @@ func getDB() (*mongo.Client, error) {
 	return cli, nil
 }
 
-func generateTx(seed int) ([]byte, []byte, []byte) {
-	TxHashByte := make([]byte, TxHashlength)
-	FromHashByte := make([]byte, AddressHashlength)
-	ToHashByte := make([]byte, AddressHashlength)
+var hashBuffer = sync.Pool{
+	New: func() interface{} {
+		buf := make([]byte, TxHashlength)
+		return &buf
+	},
+}
+
+var addressBuffer = sync.Pool{
+	New: func() interface{} {
+		buf := make([]byte, AddressHashlength)
+		return &buf
+	},
+}
+
+func generateTx() ([]byte, []byte, []byte) {
+
+	TxHashBytes := hashBuffer.Get().(*[]byte)
+	defer hashBuffer.Put(TxHashBytes)
+
+	FromHashBytes := addressBuffer.Get().(*[]byte)
+	defer addressBuffer.Put(FromHashBytes)
+
+	ToHashBytes := addressBuffer.Get().(*[]byte)
+	defer addressBuffer.Put(ToHashBytes)
+
+	TxHashByte := *TxHashBytes
+	FromHashByte := *FromHashBytes
+	ToHashByte := *ToHashBytes
+
 	RandBytes(TxHashByte)
 	RandBytes(FromHashByte)
 	RandBytes(ToHashByte)
 	return TxHashByte, FromHashByte, ToHashByte
 }
 
-func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc {
+func makeSomeTx() []*TransactionRetrievalDoc {
 	var txs []*TransactionRetrievalDoc
 	index := 1
-	for index <= num {
-		TxHashByte, FromHashByte, ToHashByte := generateTx(index)
+	for index <= txnum {
+		TxHashByte, FromHashByte, ToHashByte := generateTx()
 		txTemp := TransactionRetrievalDoc{
 			TxHash:  "0x" + string(TxHashByte),
 			TxIndex: int64(index),
@@ -175,6 +222,7 @@ func makeSomeTx(seed string, num int) []*TransactionRetrievalDoc {
 	return txs
 }
 
+//  col = db.getCollection("S1-blocks");col.find({"_id": ""}).pretty()
 func SolutionOne(coll *mongo.Collection) error {
 	fmt.Printf("---- start insert SolutionOne data...createIndex = %v\n----", createIndex)
 	now := time.Now()
@@ -191,7 +239,7 @@ func SolutionOne(coll *mongo.Collection) error {
 			Keys: bsonxD,
 		})
 
-		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.txHash", bsonx.Int32(1)}}
+		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.hash", bsonx.Int32(1)}}
 		indexModels = append(indexModels, mongo.IndexModel{
 			Keys: bsonxD,
 		})
@@ -217,21 +265,13 @@ func SolutionOne(coll *mongo.Collection) error {
 
 	for index := start; index <= blocknum; index++ {
 		// Block0, 10
-		txs := makeSomeTx(Blocksuffix+strconv.Itoa(index), txnum)
-		var B interface{}
-		if coll.Name() == SolutionOneNoId {
-			B = BlockRetrievalDoc{
-				BlockNumber:    uint64(index),
-				BlockWriteTime: time.Now().UnixNano(),
-				Txs:            txs,
-			}
-		} else if coll.Name() == SolutionOneId {
-			B = BlockRetrievalDoc12{
-				BlockNumber:    uint64(index),
-				BlockWriteTime: time.Now().UnixNano(),
-				Txs:            txs,
-			}
+		txs := makeSomeTx()
+		B := BlockRetrievalDoc{
+			BlockNumber:    uint64(index),
+			BlockWriteTime: time.Now().UnixNano(),
+			Txs:            txs,
 		}
+
 		_, err := coll.InsertOne(nil, B)
 		if err != nil {
 			fmt.Printf("[S1] insert error, now number is %v, err: %v\n", index, err.Error())
@@ -243,43 +283,87 @@ func SolutionOne(coll *mongo.Collection) error {
 	return nil
 }
 
-//  col = db.getCollection("S2-ID");col.find({"_id": ""}).pretty()
-func SolutionTwo(coll *mongo.Collection) error {
-	fmt.Println("---- start insert SolutionTwo data... ----")
+func SolutionTwo(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error {
+	fmt.Printf("---- start insert SolutionTwo data... createIndex = %v\n----", createIndex)
 	now := time.Now()
-	var B interface{}
+	if createIndex {
+		fmt.Printf("create txColl index ...., now time is %v\n", time.Now())
+		start := time.Now()
+
+		// 创建非组合索引
+		var indexModels []mongo.IndexModel
+		var bsonxD bsonx.Doc
+		bsonxD = []bsonx.Elem{bsonx.Elem{"hash", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		//bsonxD = []bsonx.Elem{bsonx.Elem{"blkNum", bsonx.Int32(1)}}
+		//indexModels = append(indexModels, mongo.IndexModel{
+		//	Keys: bsonxD,
+		//})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"from", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"to", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView := Txcoll.Indexes()
+		_, err := indexView.CreateMany(context.Background(), indexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Create txColl index time used: %v\n", time.Now().Sub(start))
+
+		fmt.Printf("create blockColl index ...., now time is %v\n", time.Now())
+		start = time.Now()
+
+		var blockIndexModels []mongo.IndexModel
+		bsonxD = []bsonx.Elem{bsonx.Elem{"writeTime", bsonx.Int32(1)}}
+		blockIndexModels = append(blockIndexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView = Blockcoll.Indexes()
+		_, err = indexView.CreateMany(context.Background(), blockIndexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Createb lockColl index time used: %v\n", time.Now().Sub(start))
+	}
+
 	for bindex := start; bindex <= blocknum; bindex++ {
-		B = BlockRetrievalDoc2{
+		B := BlockRetrievalDoc23{
 			BlockNumber:    uint64(bindex),
 			BlockWriteTime: time.Now().UnixNano(),
 		}
-		// Block0, 10
+		_, err := Blockcoll.InsertOne(nil, B)
+		if err != nil {
+			fmt.Printf("[S3] insert block error, now number is %v, err: %v\n", bindex, err.Error())
+			continue
+		}
+
 		for tindex := 1; tindex <= txnum; tindex++ {
 			var T interface{}
-			TxHashByte, FromHashByte, ToHashByte := generateTx(tindex)
-			if coll.Name() == SolutionTwoId {
-				T = TransactionRetrievalDoc22{
-					TxHash:  "0x" + string(TxHashByte),
-					TxIndex: int64(tindex),
-					From:    "0x" + string(FromHashByte),
-					To:      "0x" + string(ToHashByte),
-					Extra:   "hello, world",
-					Block:   B.(BlockRetrievalDoc2),
-				}
-			} else if coll.Name() == SolutionTwoNoId {
-				T = TransactionRetrievalDoc2{
-					TxHash:  "0x" + string(TxHashByte),
-					TxIndex: int64(tindex),
-					From:    "0x" + string(FromHashByte),
-					To:      "0x" + string(ToHashByte),
-					Extra:   "hello, world",
-					Block:   B.(BlockRetrievalDoc2),
-				}
+			TxHashByte, FromHashByte, ToHashByte := generateTx()
+			T = TransactionRetrievalDoc2{
+				TxHash:      "0x" + string(TxHashByte),
+				TxIndex:     int64(tindex),
+				From:        "0x" + string(FromHashByte),
+				To:          "0x" + string(ToHashByte),
+				Extra:       "hello, world",
+				BlockNumber: uint64(bindex),
 			}
-			_, err := coll.InsertOne(nil, T)
+			_, err := Txcoll.InsertOne(nil, T)
 			if err != nil {
-				fmt.Printf("[S2] insert error, now number is %v, err: %v\n", bindex, err.Error())
-				fmt.Printf("%+v\n", T)
+				fmt.Printf("[S3] insert tx error, now number is %v, err: %v\n", bindex, err.Error())
 				continue
 			}
 		}
@@ -298,7 +382,91 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error 
 		// 创建非组合索引
 		var indexModels []mongo.IndexModel
 		var bsonxD bsonx.Doc
-		bsonxD = []bsonx.Elem{bsonx.Elem{"blockNumber", bsonx.Int32(1)}}
+		//bsonxD = []bsonx.Elem{bsonx.Elem{"blkNum", bsonx.Int32(1)}}
+		//indexModels = append(indexModels, mongo.IndexModel{
+		//	Keys: bsonxD,
+		//})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"from", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"to", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView := Txcoll.Indexes()
+		_, err := indexView.CreateMany(context.Background(), indexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Create txColl index time used: %v\n", time.Now().Sub(start))
+
+		fmt.Printf("create blockColl index ...., now time is %v\n", time.Now())
+		start = time.Now()
+
+		var blockIndexModels []mongo.IndexModel
+		bsonxD = []bsonx.Elem{bsonx.Elem{"writeTime", bsonx.Int32(1)}}
+		blockIndexModels = append(blockIndexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView = Blockcoll.Indexes()
+		_, err = indexView.CreateMany(context.Background(), blockIndexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Createb lockColl index time used: %v\n", time.Now().Sub(start))
+	}
+
+	for bindex := start; bindex <= blocknum; bindex++ {
+		B := BlockRetrievalDoc23{
+			BlockNumber:    uint64(bindex),
+			BlockWriteTime: time.Now().UnixNano(),
+		}
+		_, err := Blockcoll.InsertOne(nil, B)
+		if err != nil {
+			fmt.Printf("[S3] insert block error, now number is %v, err: %v\n", bindex, err.Error())
+			continue
+		}
+
+		for tindex := 1; tindex <= txnum; tindex++ {
+			var T interface{}
+			TxHashByte, FromHashByte, ToHashByte := generateTx()
+			T = TransactionRetrievalDoc3{
+				TxHash:      "0x" + string(TxHashByte),
+				TxIndex:     int64(tindex),
+				From:        "0x" + string(FromHashByte),
+				To:          "0x" + string(ToHashByte),
+				Extra:       "hello, world",
+				BlockNumber: uint64(bindex),
+			}
+			_, err := Txcoll.InsertOne(nil, T)
+			if err != nil {
+				fmt.Printf("[S3] insert tx error, now number is %v, err: %v\n", bindex, err.Error())
+				continue
+			}
+		}
+	}
+	fmt.Printf("finish SolutionThree, time used: %v\n", time.Now().Sub(now))
+	return nil
+}
+
+func SolutionFour(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error {
+	fmt.Printf("---- start insert SolutionFour data... createIndex = %v\n----", createIndex)
+	now := time.Now()
+	if createIndex {
+		fmt.Printf("create txColl index ...., now time is %v\n", time.Now())
+		start := time.Now()
+
+		// 创建非组合索引
+		var indexModels []mongo.IndexModel
+		var bsonxD bsonx.Doc
+		bsonxD = []bsonx.Elem{bsonx.Elem{"hash", bsonx.Int32(1)}}
 		indexModels = append(indexModels, mongo.IndexModel{
 			Keys: bsonxD,
 		})
@@ -340,22 +508,12 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error 
 	}
 
 	for bindex := start; bindex <= blocknum; bindex++ {
-		B := BlockRetrievalDoc3{
-			BlockNumber:    uint64(bindex),
-			BlockWriteTime: time.Now().UnixNano(),
-		}
-		_, err := Blockcoll.InsertOne(nil, B)
-		if err != nil {
-			fmt.Printf("[S3] insert block error, now number is %v, err: %v\n", bindex, err.Error())
-			continue
-		}
-
+		txs := make([]string, txnum)
 		for tindex := 1; tindex <= txnum; tindex++ {
-			var T interface{}
-			TxHashByte, FromHashByte, ToHashByte := generateTx(tindex)
-			T = TransactionRetrievalDoc3{
+			TxHashByte, FromHashByte, ToHashByte := generateTx()
+			T := TransactionRetrievalDoc4{
 				TxHash:      "0x" + string(TxHashByte),
-				TxIndex:     int64(tindex),
+				TxIndex:     int64(tindex - 1),
 				From:        "0x" + string(FromHashByte),
 				To:          "0x" + string(ToHashByte),
 				Extra:       "hello, world",
@@ -366,54 +524,160 @@ func SolutionThree(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error 
 				fmt.Printf("[S3] insert tx error, now number is %v, err: %v\n", bindex, err.Error())
 				continue
 			}
+			txs[tindex-1] = T.TxHash
+		}
+
+		B := BlockRetrievalDoc45{
+			BlockNumber:    uint64(bindex),
+			BlockWriteTime: time.Now().UnixNano(),
+			Txs:            txs,
+		}
+		_, err := Blockcoll.InsertOne(nil, B)
+		if err != nil {
+			fmt.Printf("[S3] insert block error, now number is %v, err: %v\n", bindex, err.Error())
+			continue
 		}
 	}
-	fmt.Printf("finish SolutionThree, time used: %v\n", time.Now().Sub(now))
+	fmt.Printf("finish SolutionFour, time used: %v\n", time.Now().Sub(now))
 	return nil
 }
+
+func SolutionFive(Txcoll *mongo.Collection, Blockcoll *mongo.Collection) error {
+	fmt.Printf("---- start insert SolutionFive data... createIndex = %v\n----", createIndex)
+	now := time.Now()
+	if createIndex {
+		fmt.Printf("create txColl index ...., now time is %v\n", time.Now())
+		start := time.Now()
+
+		// 创建非组合索引
+		var indexModels []mongo.IndexModel
+		var bsonxD bsonx.Doc
+		bsonxD = []bsonx.Elem{bsonx.Elem{"from", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		bsonxD = []bsonx.Elem{bsonx.Elem{"to", bsonx.Int32(1)}}
+		indexModels = append(indexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView := Txcoll.Indexes()
+		_, err := indexView.CreateMany(context.Background(), indexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Create txColl index time used: %v\n", time.Now().Sub(start))
+
+		fmt.Printf("create blockColl index ...., now time is %v\n", time.Now())
+		start = time.Now()
+
+		var blockIndexModels []mongo.IndexModel
+		bsonxD = []bsonx.Elem{bsonx.Elem{"writeTime", bsonx.Int32(1)}}
+		blockIndexModels = append(blockIndexModels, mongo.IndexModel{
+			Keys: bsonxD,
+		})
+
+		indexView = Blockcoll.Indexes()
+		_, err = indexView.CreateMany(context.Background(), blockIndexModels)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Createb lockColl index time used: %v\n", time.Now().Sub(start))
+	}
+
+	for bindex := start; bindex <= blocknum; bindex++ {
+		txs := make([]string, txnum)
+		for tindex := 1; tindex <= txnum; tindex++ {
+			TxHashByte, FromHashByte, ToHashByte := generateTx()
+			T := TransactionRetrievalDoc5{
+				TxHash:      "0x" + string(TxHashByte),
+				TxIndex:     int64(tindex - 1),
+				From:        "0x" + string(FromHashByte),
+				To:          "0x" + string(ToHashByte),
+				Extra:       "hello, world",
+				BlockNumber: uint64(bindex),
+			}
+			_, err := Txcoll.InsertOne(nil, T)
+			if err != nil {
+				fmt.Printf("[S3] insert tx error, now number is %v, err: %v\n", bindex, err.Error())
+				continue
+			}
+			txs[tindex-1] = T.TxHash
+		}
+
+		B := BlockRetrievalDoc45{
+			BlockNumber:    uint64(bindex),
+			BlockWriteTime: time.Now().UnixNano(),
+			Txs:            txs,
+		}
+		_, err := Blockcoll.InsertOne(nil, B)
+		if err != nil {
+			fmt.Printf("[S3] insert block error, now number is %v, err: %v\n", bindex, err.Error())
+			continue
+		}
+	}
+	fmt.Printf("finish SolutionFive, time used: %v\n", time.Now().Sub(now))
+	return nil
+}
+
 func main() {
 	cli, err := getDB()
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-	ns := command.ParseNamespace(mongodbNamespaceDefault)
 
-	//coll := cli.Database(ns.DB).Collection(SolutionOneId)
-	//err = SolutionOne(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
-
-	//coll = cli.Database(ns.DB).Collection(SolutionOneNoId)
-	//err = SolutionOne(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
-
-	//coll = cli.Database(ns.DB).Collection(SolutionTwoNoId)
-	//err = SolutionTwo(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
-	//
-	//coll = cli.Database(ns.DB).Collection(SolutionTwoId)
-	//err = SolutionTwo(coll)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
-
-	Txcoll := cli.Database(ns.DB).Collection(SolutionThreeTx)
-	Blockcoll := cli.Database(ns.DB).Collection(SolutionThreeBlock)
-	err = SolutionThree(Txcoll, Blockcoll)
+	// 方案一：嵌套
+	coll := cli.Database("flato1").Collection(SolutionOneBlocks)
+	err = SolutionOne(coll)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
+	time.Sleep(1 * time.Minute)
+
+	// 方案二：引用，_id不为交易哈希
+	Txcoll := cli.Database("flato2").Collection(SolutionTwoTransactions)
+	Blockcoll := cli.Database("flato2").Collection(SolutionTwoBlocks)
+	err = SolutionTwo(Txcoll, Blockcoll)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	time.Sleep(1 * time.Minute)
+
+	// 方案三：引用，_id为交易哈希
+	Txcoll3 := cli.Database("flato3").Collection(SolutionThreeTransactions)
+	Blockcoll3 := cli.Database("flato3").Collection(SolutionThreeBlocks)
+	err = SolutionThree(Txcoll3, Blockcoll3)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	time.Sleep(1 * time.Minute)
+
+	// 方案四：引用，_id不为交易哈希
+	Txcoll4 := cli.Database("flato4").Collection(SolutionFourTransactions)
+	Blockcoll4 := cli.Database("flato4").Collection(SolutionFourBlocks)
+	err = SolutionFour(Txcoll4, Blockcoll4)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	time.Sleep(1 * time.Minute)
+
+	// 方案五：引用，_id为交易哈希
+	Txcoll5 := cli.Database("flato5").Collection(SolutionFiveTransactions)
+	Blockcoll5 := cli.Database("flato5").Collection(SolutionFiveBlocks)
+	err = SolutionFive(Txcoll5, Blockcoll5)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	time.Sleep(1 * time.Minute)
 
 }
 
@@ -427,5 +691,3 @@ func RandBytes(b []byte) {
 		b[i] = letters[index.Int64()]
 	}
 }
-
-// col = db.getCollection("S1-ID");col.find().pretty()
