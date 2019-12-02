@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
@@ -233,25 +234,28 @@ func SolutionOne(coll *mongo.Collection) error {
 
 		// 创建非组合索引
 		var indexModels []mongo.IndexModel
-		var bsonxD bsonx.Doc
-		bsonxD = []bsonx.Elem{bsonx.Elem{"writeTime", bsonx.Int32(1)}}
 		indexModels = append(indexModels, mongo.IndexModel{
-			Keys: bsonxD,
+			Keys: bson.D{
+				{"writeTime", 1},
+			},
 		})
 
-		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.hash", bsonx.Int32(1)}}
 		indexModels = append(indexModels, mongo.IndexModel{
-			Keys: bsonxD,
+			Keys: bson.D{
+				{"txs.hash", 1},
+			},
 		})
 
-		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.from", bsonx.Int32(1)}}
 		indexModels = append(indexModels, mongo.IndexModel{
-			Keys: bsonxD,
+			Keys: bson.D{
+				{"txs.from", 1},
+			},
 		})
 
-		bsonxD = []bsonx.Elem{bsonx.Elem{"txs.to", bsonx.Int32(1)}}
 		indexModels = append(indexModels, mongo.IndexModel{
-			Keys: bsonxD,
+			Keys: bson.D{
+				{"txs.to", 1},
+			},
 		})
 
 		indexView := coll.Indexes()
